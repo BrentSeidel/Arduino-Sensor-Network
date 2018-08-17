@@ -186,6 +186,8 @@ package body web_server is
          svg.thermometer(s, p);
       elsif (name = "dial") then
          svg.dial(s, p);
+      elsif (name = "devices") then
+         internal.html_devices(s);
       else
          http.not_implemented_int(s, name);
       end if;

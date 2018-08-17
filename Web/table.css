@@ -4,8 +4,28 @@ table, th, td
   border-collapse: collapse;
 }
 
+table.noborder, th.noborder, td.noborder
+{
+  border: 0px none White;
+}
+
 th
 {
   background-color: LightGray;
   color: black;
+}
+
+td.error
+{
+  background-color: Red;
+}
+
+td.set
+{
+  background-color : Green
+}
+
+td.clear
+{
+  background-color : Red
 }
