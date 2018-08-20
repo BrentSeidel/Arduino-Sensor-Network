@@ -39,6 +39,20 @@ package internal is
    -- Display table consisting of address 0 (device ID) for all devices
    --
    procedure html_devices(s : GNAT.Sockets.Stream_Access);
+   --
+   -- Provide data in XML format
+   --
+   -- Send length of data store
+   --
+   procedure xml_devices(s : GNAT.Sockets.Stream_Access);
+   --
+   -- Get device name
+   --
+   procedure xml_device_name(s : GNAT.Sockets.Stream_Access; p : web_common.params.Map);
+   --
+   -- Get device data - all data from a device
+   --
+   procedure xml_device_data(s : GNAT.Sockets.Stream_Access; p : web_common.params.Map);
 
 private
    CRLF : String renames web_common.CRLF;
@@ -68,4 +82,26 @@ private
    -- Display an TSL2561 record as a table that can be nested in another table
    --
    procedure html_tsl2561(s : GNAT.Sockets.Stream_Access; d : rs485.data_record);
+   --
+   -- Provide data in XML format
+   --
+   -- Provide an XML version of the info message
+   --
+   procedure xml_info_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record);
+   --
+   -- Provide an XML version of the BME280 message
+   --
+   procedure xml_BME280_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record);
+   --
+   -- Provide an XML version of the discrete message
+   --
+   procedure xml_discrete_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record);
+   --
+   -- Provide an XML version of the CCS811 message
+   --
+   procedure xml_ccs811_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record);
+   --
+   -- Provide an XML version of the TSL2561 message
+   --
+   procedure xml_tsl2561_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record);
 end;

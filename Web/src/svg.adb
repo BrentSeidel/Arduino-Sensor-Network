@@ -15,6 +15,8 @@ package body svg is
             min := Integer'Value(web_common.params.Element(p, "min"));
          exception
             when others =>
+               Ada.Text_IO.Put_Line("Error processing min value " &
+                                      web_common.params.Element(p, "min"));
                min := 0;
          end;
       end if;
@@ -23,6 +25,8 @@ package body svg is
             max := Integer'Value(web_common.params.Element(p, "max"));
          exception
             when others =>
+               Ada.Text_IO.Put_Line("Error processing max value " &
+                                      web_common.params.Element(p, "max"));
                max := 250;
          end;
       end if;
@@ -51,9 +55,12 @@ package body svg is
    --
    procedure thermometer(s : GNAT.Sockets.Stream_Access; min : Float; max : Float; value : Float) is
       start : Integer;
-      scale : Float := (max - min) / 250.0;
+      scale : Float := 250.0 / (max - min);
       height : Integer := Integer(value*scale - min);
    begin
+      Ada.Text_IO.Put_Line("SVG Thermometer called with min=" & Integer'Image(Integer(min)) &
+                             ", max=" & Integer'Image(Integer(max)) & ", value=" &
+                             Integer'Image(Integer(value)));
       http.ok(s, "image/svg+xml");
       String'Write(s, "<?xml version=""1.0"" encoding=""UTF-8"" standalone=""no""?>" & CRLF);
       String'Write(s, "<svg version=""1.1"" baseProfile=""full""" & CRLF);
@@ -74,7 +81,7 @@ package body svg is
          String'Write(s, "<text x=""72"" y=""" &
                         Ada.Strings.Fixed.Trim(Integer'Image(283 - i*25), Ada.Strings.Left) &
                         """ fill=""black"" font-size=""14"" stroke-width=""1"">" &
-                        Integer'Image(Integer(min + Float(i)*(max-min)/(scale*10.0))) & "</text>" & CRLF);
+                        Integer'Image(Integer(min + Float(i)*(max-min)/10.0)) & "</text>" & CRLF);
       end loop;
       --
       -- White fill

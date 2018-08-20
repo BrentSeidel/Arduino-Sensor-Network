@@ -1,4 +1,4 @@
-<html><head
+<html><head>
 <title>Settings Page</title>
 <link rel="stylesheet" type="text/css" href="Style">
 </head>
@@ -7,11 +7,15 @@
 <p>This is the settings page that will eventually be used to support some type of settings.</p>
 <button type="button" onclick="test()">Test JS</button>
 <p id="demo">JavaScript not available</p>
-<button type="button" onclick="loadCounter()">How many transactions?</button>
+<button type="button" onclick="loadCounter()">How many devices?</button>
 <p id="count">Transaction count goes here</p>
-<button type="button" onclick="animate()">Animate</button>
+<button type="button" onclick="loadCounter()">How many devices?</button>
+<button type="button" onclick="loadNames()">Load Device Names</button>
+<div id="devices"></div>
+<div id="DevData"></div>
+<button type="button" onclick="animateThings()">Animate</button>
 <img id="temp1" src="/Thermometer?min=100&max=350&value=250" alt="Thermometer example"></img>
-<img id="temp2" src="/Thermometer" alt="Thermometer example"></img>
+<img id="temp2" src="/Thermometer?value=125" alt="Thermometer example"></img>
 <img id="dial1" src="/Dial?min=100&max=200&value=150" alt="Dial example"></img>
 <p>Value for first thermometer: <input type="number" id="t1" onchange="setT1()"></input></p>
 <p>Value for second thermometer: <input type="number" id="t2" onchange="setT2()"></input></p>

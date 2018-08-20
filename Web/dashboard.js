@@ -1,55 +1,4 @@
 //
-// Simple function to put some output into the "demo" element.
-//
-function test()
-{
-  var text = "";
-  var x = 0;
-
-  for (x = 0; x < 10; x++)
-  {
-    text += "Test " + x + "<br>";
-  }
-  document.getElementById("demo").innerHTML = text;
-}
-//
-// Get numbers from two fields, add them together and put the result in another
-// field and the "demo" element.
-//
-function calculate()
-{
-  var num1 = document.getElementById("num1").value * 1;
-  var num2 = document.getElementById("num2").value * 1;
-
-  document.getElementById("num3").value = num1 + num2;
-  document.getElementById("demo").innerHTML = "Calculating " + (num1 + num2);
-}
-//
-// Requests a value from the server using AJAX.
-//
-function loadCounter()
-{
-  var xhttp = new XMLHttpRequest();
-
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      displayCounter(this);
-    }
-  };
-  xhttp.open("GET", "/xml/Devices", true);
-  xhttp.send();
-}
-//
-// Displays the value requested in the previous function in the "counter" element.
-//
-function displayCounter(xml)
-{
-  var xmlDoc = xml.responseXML;
-  var x = xmlDoc.getElementsByTagName("length")[0].childNodes[0].nodeValue;
-
-document.getElementById("count").innerHTML = x + " devices on RS-485 network";
-}
-//
 // Load the device names.  First need to get the count.  Then when that comes
 // back, loop to request each name.
 //
@@ -139,6 +88,9 @@ function dispDevData(xml)
   var name = xmlDoc.getElementsByTagName("name");
   var temp;
   var text;
+  var temp_c;
+  var pressure;
+  var humidity;
 
   if (error.length > 0)
   {
@@ -148,7 +100,24 @@ function dispDevData(xml)
   {
     text = "<h1>" + name[0].childNodes[0].nodeValue + "</h1>";
   }
-    document.getElementById("DevData").innerHTML = text;
+  temp = xmlDoc.getElementsByTagName("bme280");
+  if (temp.length > 0)
+  {
+    text += "<table><td><th>Temperature</th><th>Pressure</th><th>Humidity</th></tr>";
+    temp_c = parseFloat(xmlDoc.getElementsByTagName("bme280_temp_c")[0].childNodes[0].nodeValue);
+    pressure = xmlDoc.getElementsByTagName("bme280_pressure_pa")[0].childNodes[0].nodeValue;
+    humidity = parseFloat(xmlDoc.getElementsByTagName("bme280_humidity")[0].childNodes[0].nodeValue);
+    text += "<tr><td><img src=\"/Thermometer?min=0&max=100&value=" +
+            Math.round(temp_c) + "\"></img></td>";
+    text += "<td>Pressure goes here</td>";
+    text += "<td><img src=\"/Dial?min=0&max=100&value=" + Math.round(humidity) +
+           "\"></img></td></tr>";
+    text += "<tr><td>" + temp_c.toFixed(1) + "&deg;C</td>";
+    text += "<td>" + Math.round(pressure) + "Pa</td>";
+    text += "<td>" + humidity.toFixed(1) + "%</td></tr>";
+    text += "</table>";
+  }
+  document.getElementById("DevData").innerHTML = text;
 }
 //
 // Global values for some timer related functions.
@@ -201,28 +170,3 @@ function update_therm_down()
     window.clearInterval(therm_timer);
   }
 }
-//
-// Set the value of thermometer 1
-//
-function setT1()
-{
-  var el = document.getElementById("temp1");
-  el.src = "/Thermometer?min=100&max=350&value=" + document.getElementById("t1").value;
-}
-//
-// Set the value of thermometer 2
-//
-function setT2()
-{
-  var el = document.getElementById("temp2");
-  el.src = "/Thermometer?min=0&max=250&value=" + document.getElementById("t2").value;
-}
-//
-// Set the value of dial 1
-//
-function setD1()
-{
-  var el = document.getElementById("dial1");
-  el.src = "/Dial?min=100&max=200&value=" + document.getElementById("d1").value;
-}
-

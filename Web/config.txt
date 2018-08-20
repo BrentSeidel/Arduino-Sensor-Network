@@ -7,6 +7,7 @@
 /Main index.html text/html
 /Settings settings.html text/html
 /Form form.html text/html
+/Dashboard dashboard.html text/html
 #
 # Internal pages
 #
@@ -23,6 +24,7 @@
 # JavaScript
 #
 /JSTest test1.js application/javascript
+/DashJS dashboard.js application/javascript
 #
 # Images
 #
@@ -31,6 +33,9 @@
 # XML stuff
 #
 /xml/Counter counter internal
+/xml/Devices device-count internal
+/xml/Name name internal
+/xml/DevData device-data internal
 #
 # Style sheet for pages.
 #

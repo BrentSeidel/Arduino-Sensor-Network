@@ -59,7 +59,7 @@ package body internal is
    end;
 
    --
-   -- Display table consisting of address 0 (device ID) for all devices
+   -- Display table consisting of data for all devices
    --
    procedure html_devices(s : GNAT.Sockets.Stream_Access) is
       t : rs485.data_record;
@@ -194,6 +194,166 @@ package body internal is
       String'Write(s, "<td>" & Integer'Image(Integer(d.TSL2561_data1)) & "</td>");
       String'Write(s, "<td>" & Integer'Image(Integer(d.TSL2561_lux)) & "</td>");
       String'Write(s, "</tr></table>" & CRLF);
+   end;
+
+   --
+   -- Provide data in XML format
+   --
+   -- Send length of data store
+   --
+   procedure xml_devices(s : GNAT.Sockets.Stream_Access) is
+   begin
+      http.ok(s, "application/xml");
+      String'Write(s, "<xml><length>" & Integer'Image(Integer
+                                                      (rs485.data_store.Length)) &
+                     "</length></xml>" & CRLF);
+   end;
+
+   --
+   -- Get device name
+   -- Device is specfied by the parameter "device".
+   --
+   procedure xml_device_name(s : GNAT.Sockets.Stream_Access; p : web_common.params.Map) is
+      dev_id : Integer := 0;
+      t : rs485.data_record;
+   begin
+      http.ok(s, "application/xml");
+      if (web_common.params.Contains(p, "device")) then
+         begin
+            dev_id := Integer'Value(web_common.params.Element(p, "device"));
+         exception
+            when others =>
+               dev_id := 0;
+         end;
+      end if;
+      if (dev_id >= 0) and (dev_id < Integer(rs485.data_store.Length)) then
+         if (rs485.data_store.Element(dev_id).Length > 0) then
+            t := rs485.data_store.Element(dev_id).Element(0);
+            String'Write(s, "<xml>");
+            case t.message is
+               when rs485.MSG_TYPE_INFO =>
+                  xml_info_msg(s, t);
+               when others =>
+                  String'Write(s, "<error>Unknown record type</error>");
+            end case;
+            String'Write(s, "</xml>" & CRLF);
+         else
+            String'Write(s, "<xml><error>No data for device " & Integer'Image(dev_id) &
+                           "</error></xml>" & CRLF);
+         end if;
+      else
+         String'Write(s, "<xml><error>No data for device " & Integer'Image(dev_id) &
+                        "</error></xml>" & CRLF);
+      end if;
+   end;
+
+   --
+   -- Get device data - returns all data for a device in XML
+   -- Device is specfied by the parameter "device".
+   --
+   procedure xml_device_data(s : GNAT.Sockets.Stream_Access; p : web_common.params.Map) is
+      dev_id : Integer := 0;
+      recs : Integer;
+      t : rs485.data_record;
+   begin
+      http.ok(s, "application/xml");
+      if (web_common.params.Contains(p, "device")) then
+         begin
+            dev_id := Integer'Value(web_common.params.Element(p, "device"));
+         exception
+            when others =>
+               dev_id := 0;
+         end;
+      end if;
+      if (dev_id >= 0) and (dev_id < Integer(rs485.data_store.Length)) then
+         recs := Integer(rs485.data_store.Element(dev_id).Length);
+         if (recs > 0) then
+            String'Write(s, "<xml>");
+            for i in Natural range 0 .. Natural(recs) - 1 loop
+               t := rs485.data_store.Element(dev_id).Element(i);
+               case t.message is
+                  when rs485.MSG_TYPE_INFO =>
+                     xml_info_msg(s, t);
+                  when rs485.MSG_TYPE_BME280 =>
+                     xml_bme280_msg(s, t);
+                  when rs485.MSG_TYPE_DISCRETE =>
+                     xml_discrete_msg(s, t);
+                  when rs485.MSG_TYPE_CCS811 =>
+                     xml_ccs811_msg(s, t);
+                  when rs485.MSG_TYPE_TSL2561 =>
+                     xml_tsl2561_msg(s, t);
+                  when others =>
+                     String'Write(s, "<error>Unknown record type</error>");
+               end case;
+            end loop;
+            String'Write(s, "</xml>" & CRLF);
+         else
+            String'Write(s, "<xml><error>No data for device " & Integer'Image(dev_id) &
+                           "</error></xml>" & CRLF);
+         end if;
+      else
+         String'Write(s, "<xml><error>No data for device " & Integer'Image(dev_id) &
+                        "</error></xml>" & CRLF);
+      end if;
+   end;
+   --      record
+--         validity : Integer; -- Placeholder
+--         aging : Ada.Calendar.Time; -- Time record was created.
+
+   --
+   -- Provide data in XML format
+   --
+   -- Provide an XML version of the info message
+   --
+   procedure xml_info_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+   begin
+      String'Write(s, "<info><addresses>" & Integer'Image(Integer(d.num_addr)) &
+                     "</addresses><name>" & d.name & "</name></info>");
+   end;
+   --
+   -- Provide an XML version of the BME280 message
+   --
+   procedure xml_BME280_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+   begin
+      String'Write(s, "<bme280><bme280_status>" & Integer'Image(Integer(d.BME280_status)) &
+                     "</bme280_status><bme280_age>" & Integer'Image(Integer(d.BME280_age)) &
+                     "</bme280_age><bme280_temp_c>" & Float'Image(d.BME280_temp_c) &
+                     "</bme280_temp_c><bme280_pressure_pa>" & Float'Image(d.BME280_pressure_pa) &
+                     "</bme280_pressure_pa><bme280_humidity>" & Float'Image(d.BME280_humidity) &
+                     "</bme280_humidity></bme280>");
+   end;
+   --
+   -- Provide an XML version of the discrete message
+   --
+   procedure xml_discrete_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+   begin
+      String'Write(s, "<discrete><disc_type>" & Integer'Image(Integer(d.disc_type)) &
+                     "</disc_type><disc_value>" & Integer'Image(Integer(d.disc_value)) &
+                     "</disc_value></discrete>");
+   end;
+   --
+   -- Provide an XML version of the CCS811 message
+   --
+   procedure xml_ccs811_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+   begin
+      String'Write(s, "<ccs811><ccs811_status>" & Integer'Image(Integer(d.CCS811_status)) &
+                     "</ccs811_status><ccs811_age>" & Integer'Image(Integer(d.CCS811_age)) &
+                     "</ccs811_age><ccs811_eco2>" & Integer'Image(Integer(d.CCS811_eCO2)) &
+                     "</ccs811_eco2><ccs811_tvoc>" & Integer'Image(Integer(d.CCS811_TVOC)) &
+                     "</ccs811_tvoc></ccs811>");
+   end;
+   --
+   -- Provide an XML version of the TSL2561 message
+   --
+   procedure xml_tsl2561_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+   begin
+      null;
+      String'Write(s, "<tsl2561><tsl2561_status>" & Integer'Image(Integer(d.TSL2561_status)) &
+                     "</tsl2561_status><tsl2561_age>" & Integer'Image(Integer(d.TSL2561_age)) &
+                     "</tsl2561_age><tsl2561_data0>" & Integer'Image(Integer(d.TSL2561_data0)) &
+                     "</tsl2561_data0><tsl2561_data1>" & Integer'Image(Integer(d.TSL2561_data1)) &
+                     "</tsl2561_data1><tsl2561_lux>" & Integer'Image(Integer(d.TSL2561_lux)) &
+                     "</tsl2561_lux></tsl2561>");
    end;
 
 end;

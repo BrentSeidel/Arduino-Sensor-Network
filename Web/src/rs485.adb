@@ -23,6 +23,7 @@ package body rs485 is
                    Name     => input_port);
       while not Char_IO.End_Of_File(file) loop
          Char_IO.Read(file, buff);
+         activity_counter := activity_counter + 1;
 --         Ada.Text_IO.Put(buff);
          case rs485_state is
             when STATE_START =>
@@ -237,14 +238,14 @@ package body rs485 is
          t(i*4 + 3) := Character'Val(b3);
          t(i*4 + 4) := Character'Val(b4);
       end loop;
-      return (validity => 0, aging => 0, message => MSG_TYPE_INFO,
+      return (validity => 0, aging => Ada.Calendar.Clock, message => MSG_TYPE_INFO,
               num_addr => d(0),
                 name => t);
    end;
 
    function parse_msg_BME280(d : data_buffer_type) return data_record is
    begin
-      return (validity => 0, aging => 0, message => MSG_TYPE_BME280,
+      return (validity => 0, aging => Ada.Calendar.Clock, message => MSG_TYPE_BME280,
               BME280_status => d(0),
                BME280_age => d(1),
                BME280_temp_c => Float(d(2)*5+128)/25600.0,
@@ -254,14 +255,14 @@ package body rs485 is
 
    function parse_msg_discrete(d : data_buffer_type) return data_record is
    begin
-      return (validity => 0, aging => 0, message => MSG_TYPE_DISCRETE,
+      return (validity => 0, aging => Ada.Calendar.Clock, message => MSG_TYPE_DISCRETE,
               disc_type => d(0),
               disc_value => d(1));
    end;
 
    function parse_msg_CCS811(d : data_buffer_type) return data_record is
    begin
-      return (validity => 0, aging => 0, message => MSG_TYPE_CCS811,
+      return (validity => 0, aging => Ada.Calendar.Clock, message => MSG_TYPE_CCS811,
               CCS811_status => d(0),
               CCS811_age => d(1),
               CCS811_eCO2 => d(2),
@@ -270,7 +271,7 @@ package body rs485 is
 
    function parse_msg_TSL2561(d : data_buffer_type) return data_record is
    begin
-      return (validity => 0, aging => 0, message => MSG_TYPE_TSL2561,
+      return (validity => 0, aging => Ada.Calendar.Clock, message => MSG_TYPE_TSL2561,
               TSL2561_status => d(0),
               TSL2561_age => d(1),
               TSL2561_data0 => d(2),
@@ -280,7 +281,7 @@ package body rs485 is
 
    function parse_msg_unknown(d : data_buffer_type) return data_record is
    begin
-      return (validity => 0, aging => 0, message => MSG_TYPE_UNKNOWN);
+      return (validity => 0, aging => Ada.Calendar.Clock, message => MSG_TYPE_UNKNOWN);
    end;
 
    --
@@ -307,7 +308,7 @@ package body rs485 is
       --
       t := data_store.Element(d);
       while (t.Length <= Ada.Containers.Count_Type(a)) loop
-         t.Append((Validity => 0, aging => 0,
+         t.Append((Validity => 0, aging => Ada.Calendar.Clock,
                                message => MSG_TYPE_UNKNOWN));
       end loop;
       t.Replace_Element(a, data);

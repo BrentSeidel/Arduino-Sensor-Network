@@ -188,6 +188,12 @@ package body web_server is
          svg.dial(s, p);
       elsif (name = "devices") then
          internal.html_devices(s);
+      elsif (name = "device-count") then
+         internal.xml_devices(s);
+      elsif (name = "name") then
+         internal.xml_device_name(s, p);
+      elsif (name = "device-data") then
+         internal.xml_device_data(s, p);
       else
          http.not_implemented_int(s, name);
       end if;

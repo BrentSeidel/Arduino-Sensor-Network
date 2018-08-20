@@ -2,6 +2,7 @@ with Ada.Text_IO;
 with Ada.Sequential_IO;
 with Ada.Characters.Latin_1;
 with Ada.Strings.Fixed;
+with Ada.Calendar;
 with Ada.Containers;
 use type Ada.Containers.Count_Type;
 with Ada.Containers.Vectors;
@@ -23,7 +24,7 @@ package rs485 is
    type data_record (message : message_types := MSG_TYPE_UNKNOWN) is
       record
          validity : Integer; -- Placeholder
-         aging : Integer; -- Placeholder (time record was created)
+         aging : Ada.Calendar.Time; -- Time record was created.
          case message is
             when MSG_TYPE_INFO =>
                num_addr : BBS.embed.uint32;
@@ -84,6 +85,7 @@ package rs485 is
       entry start;
    end state_machine;
 
+   activity_counter : BBS.embed.uint32;
 private
    --
    -- The tty port that is reading from the RS-485 bus.
