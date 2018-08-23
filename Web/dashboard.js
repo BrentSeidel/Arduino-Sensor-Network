@@ -91,6 +91,9 @@ function dispDevData(xml)
   var temp_c;
   var pressure;
   var humidity;
+  var type;
+  var value;
+  var i, j;
 
   if (error.length > 0)
   {
@@ -100,16 +103,48 @@ function dispDevData(xml)
   {
     text = "<h1>" + name[0].childNodes[0].nodeValue + "</h1>";
   }
+  //
+  // Discretes
+  //
+  temp = xmlDoc.getElementsByTagName("discrete");
+  if (temp.length > 0)
+  {
+    type = parseInt(xmlDoc.getElementsByTagName("disc_type")[0].childNodes[0].nodeValue);
+    value = parseInt(xmlDoc.getElementsByTagName("disc_value")[0].childNodes[0].nodeValue);
+    text += "<p>Discretes value is " + value.toString(16) + ".</p>";
+    text += "<table>";
+    for (i = 3; i >= 0; i--)
+    {
+      text += "<tr>";
+      for (j = 7; j >= 0; j--)
+      {
+        if ((value & (2**(i*8 + j))) == 0)
+        {
+          text += "<td class=\"clear\">0</td>";
+        }
+        else
+        {
+          text += "<td class=\"set\">1</td>";
+        }
+      }
+      text += "</tr>";
+    }
+    text += "</table>";
+  }
+  //
+  // BME280
+  //
   temp = xmlDoc.getElementsByTagName("bme280");
   if (temp.length > 0)
   {
-    text += "<table><td><th>Temperature</th><th>Pressure</th><th>Humidity</th></tr>";
+    text += "<table><tr><th>Temperature</th><th>Pressure</th><th>Humidity</th></tr>";
     temp_c = parseFloat(xmlDoc.getElementsByTagName("bme280_temp_c")[0].childNodes[0].nodeValue);
     pressure = xmlDoc.getElementsByTagName("bme280_pressure_pa")[0].childNodes[0].nodeValue;
     humidity = parseFloat(xmlDoc.getElementsByTagName("bme280_humidity")[0].childNodes[0].nodeValue);
     text += "<tr><td><img src=\"/Thermometer?min=0&max=100&value=" +
             Math.round(temp_c) + "\"></img></td>";
-    text += "<td>Pressure goes here</td>";
+    text += "<td><img src=\"/Thermometer?min=90000&max=100000&value=" +
+            Math.round(pressure) + "\"></img></td>";
     text += "<td><img src=\"/Dial?min=0&max=100&value=" + Math.round(humidity) +
            "\"></img></td></tr>";
     text += "<tr><td>" + temp_c.toFixed(1) + "&deg;C</td>";
@@ -117,56 +152,28 @@ function dispDevData(xml)
     text += "<td>" + humidity.toFixed(1) + "%</td></tr>";
     text += "</table>";
   }
+  //
+  // CCS811
+  //
+  temp = xmlDoc.getElementsByTagName("ccs811");
+  if (temp.length > 0)
+  {
+    text += "<table><tr><th>CO<sub>2</sub></th><th>TVOC</th></tr>";
+    text += "<tr><td>" + xmlDoc.getElementsByTagName("ccs811_eco2")[0].childNodes[0].nodeValue;
+    text += "</td><td>" + xmlDoc.getElementsByTagName("ccs811_tvoc")[0].childNodes[0].nodeValue;
+    text += "</td></tr></table>";
+  }
+  //
+  // TSL2561
+  //
+  temp = xmlDoc.getElementsByTagName("tsl2561");
+  if (temp.length > 0)
+  {
+    text += "<table><tr><th>Data 0</th><th>Data 1</th><th>Lux</th></tr>";
+    text += "<tr><td>" + xmlDoc.getElementsByTagName("tsl2561_data0")[0].childNodes[0].nodeValue;
+    text += "</td><td>" + xmlDoc.getElementsByTagName("tsl2561_data1")[0].childNodes[0].nodeValue;
+    text += "</td><td>" + xmlDoc.getElementsByTagName("tsl2561_lux")[0].childNodes[0].nodeValue;
+    text += "</td></tr></table>";
+  }
   document.getElementById("DevData").innerHTML = text;
-}
-//
-// Global values for some timer related functions.
-//
-var therm_value;
-var therm_timer;
-//
-// Initializes the value and starts a timer to count up.  Apparently this can't
-// just be called "animate".  Perhaps some browsers define it and some don't.
-//
-function animateThings()
-{
-
-  alert("Animate called.");
-  therm_value = 0;
-  therm_timer = window.setInterval(update_therm_up, 250);
-}
-//
-// Counts up and updates a couple images on each count.
-//
-function update_therm_up()
-{
-  var el1 = document.getElementById("temp1");
-  var el2 = document.getElementById("temp2");
-  var el3 = document.getElementById("dial1");
-  el1.src = "/Thermometer?min=100&max=350&value=" + (350 - therm_value);
-  el2.src = "/Thermometer?min=0&max=250&value=" + therm_value;
-  el3.src = "/Dial?min=100&max=200&value=" + therm_value;
-  therm_value++;
-  if (therm_value > 250)
-  {
-    window.clearInterval(therm_timer);
-  therm_timer = window.setInterval(update_therm_down, 250);
-  }
-}
-//
-// Counts down and updates a couple images on each count.
-//
-function update_therm_down()
-{
-  var el1 = document.getElementById("temp1");
-  var el2 = document.getElementById("temp2");
-  var el3 = document.getElementById("dial1");
-  el1.src = "/Thermometer?min=100&max=350&value=" + (350 - therm_value);
-  el2.src = "/Thermometer?min=0&max=250&value=" + therm_value;
-  el3.src = "/Dial?min=100&max=200&value=" + therm_value;
-  therm_value--;
-  if (therm_value < 0)
-  {
-    window.clearInterval(therm_timer);
-  }
 }

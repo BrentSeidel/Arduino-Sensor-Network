@@ -149,19 +149,17 @@ package body internal is
       String'Write(s, "</tr></table>" & CRLF);
    end;
 
-
    --
    -- Display an discrete record as a table that can be nested in another table
    --
    procedure html_discrete(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
       t : BBS.embed.uint32 := d.disc_value;
    begin
---      String'Write(s, "Discretes not yet implemented.");
       String'Write(s, "<table>" & CRLF);
       for i in  reverse 0 .. 3 loop
          String'Write(s, "<tr>");
          for j in  reverse 0 .. 7 loop
-            if ((t and (2**(i*16#100# + j))) = 0) then
+            if ((t and (2**(i*8 + j))) = 0) then
                String'Write(s, "<td class=""clear"">0</td>");
             else
                String'Write(s, "<td class=""set"">1</td>");
