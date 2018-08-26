@@ -16,6 +16,7 @@
 /Thermometer thermometer internal
 /Dial dial internal
 /Devices devices internal
+/ConfigReload reload internal
 #
 # Plain text
 #

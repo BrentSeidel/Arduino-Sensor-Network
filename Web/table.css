@@ -29,3 +29,9 @@ td.clear
 {
   background-color : Red
 }
+
+td.container
+{
+  text-align: Center;
+  border: 0px none White;
+}

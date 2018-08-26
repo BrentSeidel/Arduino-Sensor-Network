@@ -36,7 +36,7 @@ function loadCounter()
       displayCounter(this);
     }
   };
-  xhttp.open("GET", "/xml/Devices", true);
+  xhttp.open("GET", "/xml/Counter", true);
   xhttp.send();
 }
 //
@@ -45,9 +45,11 @@ function loadCounter()
 function displayCounter(xml)
 {
   var xmlDoc = xml.responseXML;
-  var x = xmlDoc.getElementsByTagName("length")[0].childNodes[0].nodeValue;
+  var count = xmlDoc.getElementsByTagName("counter")[0].childNodes[0].nodeValue;
+  var tasks = xmlDoc.getElementsByTagName("tasks")[0].childNodes[0].nodeValue;
 
-document.getElementById("count").innerHTML = x + " devices on RS-485 network";
+document.getElementById("count").innerHTML = count + " requests serviced<br>" +
+                                             tasks + " current active tasks";
 }
 //
 // Load the device names.  First need to get the count.  Then when that comes

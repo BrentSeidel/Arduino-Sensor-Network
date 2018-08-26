@@ -1,5 +1,26 @@
 package body web_common is
 
+
+   --
+   -- A protected type for maintianing a counter of active request_handler
+   -- tasks.
+   --
+   protected body protected_counter is
+      procedure increment is
+      begin
+         value := value + 1;
+      end;
+      --
+      procedure decrement is
+      begin
+         value := value - 1;
+      end;
+      --
+      function read return Integer is
+      begin
+         return value;
+      end;
+   end protected_counter;
    --
    -- Load the dictionary from a file.  No error checking is done on the open
    -- since if this doesn't work, there really isn't much point in continuing.
@@ -29,6 +50,7 @@ package body web_common is
       space : Natural;
       el : element;
    begin
+      directory.Clear;
       Ada.Text_IO.Open(File     => file,
                        Mode     => Ada.Text_IO.In_File,
                        Name     => name);

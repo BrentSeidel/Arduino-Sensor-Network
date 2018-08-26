@@ -1,4 +1,40 @@
 //
+// Global variables
+//
+var unitMetric = 1;  // Display in metric or imperial units
+var deviceId = -1;   // Which device is currently being displayed
+var dispTimer;       // Timer used for reloading the display
+var numDevices = 0;  // Number of devices on RS-485 network
+//
+// Initializes the value and starts a timer to count up.  Apparently this can't
+// just be called "animate".  Perhaps some browsers define it and some don't.
+//
+function startReload()
+{
+  loadNames();
+  therm_timer = window.setInterval(reloadDisplay, 5000);
+}
+//
+function reloadDisplay()
+{
+  loadNames();
+  if (deviceId >= 0)
+  {
+    reqDevData(deviceId)
+  }
+}
+//
+// Set the value of the unitMetric flag
+//
+function setMetric(val)
+{
+  unitMetric = val;
+  if (deviceId >= 0)
+  {
+    reqDevData(deviceId)
+  }
+}
+//
 // Load the device names.  First need to get the count.  Then when that comes
 // back, loop to request each name.
 //
@@ -24,22 +60,35 @@ function reqNames(xml)
   var device;
   var table;
 
-  table = "<table><tr><th>ID</th><th>Name</th></tr>";
-  for (device = 0; device < x; device++)
+  if (x != numDevices)
   {
-    table += "<tr><td>" + device + "</td><td id=\"dev-" + device + "\"></td></tr>";
-    sendDeviceRequest(device)
+    table = "<table><tr><th>ID</th><th>Name</th></tr>";
+    for (device = 0; device < x; device++)
+    {
+      table += "<tr><td>" + device + "</td><td id=\"dev-" + device + "\"></td></tr>";
+      sendDeviceRequest(device)
+    }
+    table += "</table>";
+    document.getElementById("devices").innerHTML = table;
+    numDevices = x;
   }
-  table += "</table>";
-  document.getElementById("devices").innerHTML = table;
+  else // If the number of devices hasn't changed, don't rebuild the table.
+  {
+    for (device = 0; device < x; device++)
+    {
+      sendDeviceRequest(device)
+    }
+  }
 }
 //
 function sendDeviceRequest(dev)
 {
   xhttp = new XMLHttpRequest();
 
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
+  xhttp.onreadystatechange = function()
+  {
+    if (this.readyState == 4 && this.status == 200)
+    {
       displayName(this, dev);
     }
   }
@@ -72,8 +121,11 @@ function reqDevData(dev)
 {
   xhttp = new XMLHttpRequest();
 
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
+  deviceId = dev;
+  xhttp.onreadystatechange = function()
+  {
+    if (this.readyState == 4 && this.status == 200)
+    {
       dispDevData(this);
     }
   }
@@ -89,6 +141,7 @@ function dispDevData(xml)
   var temp;
   var text;
   var temp_c;
+  var temp_f;
   var pressure;
   var humidity;
   var type;
@@ -141,15 +194,31 @@ function dispDevData(xml)
     temp_c = parseFloat(xmlDoc.getElementsByTagName("bme280_temp_c")[0].childNodes[0].nodeValue);
     pressure = xmlDoc.getElementsByTagName("bme280_pressure_pa")[0].childNodes[0].nodeValue;
     humidity = parseFloat(xmlDoc.getElementsByTagName("bme280_humidity")[0].childNodes[0].nodeValue);
-    text += "<tr><td><img src=\"/Thermometer?min=0&max=100&value=" +
-            Math.round(temp_c) + "\"></img></td>";
-    text += "<td><img src=\"/Thermometer?min=90000&max=100000&value=" +
-            Math.round(pressure) + "\"></img></td>";
-    text += "<td><img src=\"/Dial?min=0&max=100&value=" + Math.round(humidity) +
-           "\"></img></td></tr>";
-    text += "<tr><td>" + temp_c.toFixed(1) + "&deg;C</td>";
-    text += "<td>" + Math.round(pressure) + "Pa</td>";
-    text += "<td>" + humidity.toFixed(1) + "%</td></tr>";
+    if (unitMetric == 1)
+    {
+      text += "<tr><td class=\"container\"><img src=\"/Thermometer?min=0&max=100&value=" +
+              Math.round(temp_c) + "\"></img></td>";
+      text += "<td class=\"container\"><img src=\"/Thermometer?min=90000&max=100000&value=" +
+              Math.round(pressure) + "\"></img></td>";
+      text += "<td class=\"container\"><img src=\"/Dial?min=0&max=100&value=" + Math.round(humidity) +
+             "\"></img></td></tr>";
+      text += "<tr><td class=\"container\">" + temp_c.toFixed(1) + "&deg;C</td>";
+      text += "<td class=\"container\">" + Math.round(pressure) + "Pa</td>";
+    }
+    else
+    {
+      temp_f = (temp_c*9/5) + 32;
+      pressure = pressure/3386.39;
+      text += "<tr><td class=\"container\"><img src=\"/Thermometer?min=50&max=150&value=" +
+              Math.round(temp_f) + "\"></img></td>";
+      text += "<td class=\"container\"><img src=\"/Thermometer?min=2500&max=3500&value=" +
+              Math.round(pressure*100.0) + "\"></img></td>";
+      text += "<td class=\"container\"><img src=\"/Dial?min=0&max=100&value=" + Math.round(humidity) +
+             "\"></img></td></tr>";
+      text += "<tr><td class=\"container\">" + temp_f.toFixed(1) + "&deg;F</td>";
+      text += "<td class=\"container\">" + pressure.toFixed(2) + "inHg</td>";
+    }
+    text += "<td class=\"container\">" + humidity.toFixed(1) + "%</td></tr>";
     text += "</table>";
   }
   //

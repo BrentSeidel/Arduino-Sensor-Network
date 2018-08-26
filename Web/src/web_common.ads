@@ -61,4 +61,22 @@ package web_common is
    -- A counter to provide some data to send to the client.
    --
    counter : Integer := 0;
+   --
+   -- A protected type for maintianing a counter of active request_handler
+   -- tasks.
+   --
+   protected type protected_counter is
+      procedure increment;
+      procedure decrement;
+      function read return Integer;
+   private
+      value : integer := 0;
+   end protected_counter;
+   --
+   -- A counter to keep track of how many request_handler tasks are active.  The
+   -- value should be a low positive number.  If it goes negative, a problem has
+   -- occured.  If the value tends to increase, it means that the handler tasks
+   -- are not terminating.
+   --
+   task_counter : protected_counter;
 end;

@@ -2,11 +2,14 @@
 <title>Dashboard Page</title>
 <link rel="stylesheet" type="text/css" href="Style">
 </head>
-<body onload="loadNames()">
+<body onload="startReload()">
 <script src="DashJS"></script>
 <p>This is the dashboard page that allows one to view information from the various
 devices on the RS-485 network.</p>
 <div id="devices"></div>
+<p>Select the measurement system</p>
+<input type="radio" name="measurement" value="metric" checked onclick="setMetric(1)">Metric</input>
+<input type="radio" name="measurement" value="imperial" onclick="setMetric(0)">Imperial</input>
 <div id="DevData"></div>
 <hr/>
 <p>Go <a href="/">back</a> to the main page.</p>
