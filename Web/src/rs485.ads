@@ -21,9 +21,12 @@ package rs485 is
                           MSG_TYPE_ANALOG, MSG_TYPE_VERSION, MSG_TYPE_CCS811,
                           MSG_TYPE_TSL2561);
 
+   type msg_validity is (DATA_VALID, DATA_STALE, DATA_INIT, DATA_SENSOR,
+                         DATA_NO_COMPUTED, DATA_INVALID);
+
    type data_record (message : message_types := MSG_TYPE_UNKNOWN) is
       record
-         validity : Integer; -- Placeholder
+         validity : msg_validity; -- Validity code
          aging : Ada.Calendar.Time; -- Time record was created.
          case message is
             when MSG_TYPE_INFO =>
@@ -86,6 +89,12 @@ package rs485 is
    end state_machine;
 
    activity_counter : BBS.embed.uint32;
+
+   --
+   -- Function to convert numeric code to validity
+   --
+   function code_to_validity(c : Integer) return msg_validity;
+
 private
    --
    -- The tty port that is reading from the RS-485 bus.

@@ -21,6 +21,7 @@
 # Plain text
 #
 /list config.txt text/plain
+/Proc/Status /proc/self/status text/plain
 #
 # JavaScript
 #

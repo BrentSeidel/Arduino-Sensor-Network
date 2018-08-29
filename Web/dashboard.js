@@ -190,36 +190,7 @@ function dispDevData(xml)
   temp = xmlDoc.getElementsByTagName("bme280");
   if (temp.length > 0)
   {
-    text += "<table><tr><th>Temperature</th><th>Pressure</th><th>Humidity</th></tr>";
-    temp_c = parseFloat(xmlDoc.getElementsByTagName("bme280_temp_c")[0].childNodes[0].nodeValue);
-    pressure = xmlDoc.getElementsByTagName("bme280_pressure_pa")[0].childNodes[0].nodeValue;
-    humidity = parseFloat(xmlDoc.getElementsByTagName("bme280_humidity")[0].childNodes[0].nodeValue);
-    if (unitMetric == 1)
-    {
-      text += "<tr><td class=\"container\"><img src=\"/Thermometer?min=0&max=100&value=" +
-              Math.round(temp_c) + "\"></img></td>";
-      text += "<td class=\"container\"><img src=\"/Thermometer?min=90000&max=100000&value=" +
-              Math.round(pressure) + "\"></img></td>";
-      text += "<td class=\"container\"><img src=\"/Dial?min=0&max=100&value=" + Math.round(humidity) +
-             "\"></img></td></tr>";
-      text += "<tr><td class=\"container\">" + temp_c.toFixed(1) + "&deg;C</td>";
-      text += "<td class=\"container\">" + Math.round(pressure) + "Pa</td>";
-    }
-    else
-    {
-      temp_f = (temp_c*9/5) + 32;
-      pressure = pressure/3386.39;
-      text += "<tr><td class=\"container\"><img src=\"/Thermometer?min=50&max=150&value=" +
-              Math.round(temp_f) + "\"></img></td>";
-      text += "<td class=\"container\"><img src=\"/Thermometer?min=2500&max=3500&value=" +
-              Math.round(pressure*100.0) + "\"></img></td>";
-      text += "<td class=\"container\"><img src=\"/Dial?min=0&max=100&value=" + Math.round(humidity) +
-             "\"></img></td></tr>";
-      text += "<tr><td class=\"container\">" + temp_f.toFixed(1) + "&deg;F</td>";
-      text += "<td class=\"container\">" + pressure.toFixed(2) + "inHg</td>";
-    }
-    text += "<td class=\"container\">" + humidity.toFixed(1) + "%</td></tr>";
-    text += "</table>";
+    text += add_BME280(temp[0].childNodes);
   }
   //
   // CCS811
@@ -227,10 +198,7 @@ function dispDevData(xml)
   temp = xmlDoc.getElementsByTagName("ccs811");
   if (temp.length > 0)
   {
-    text += "<table><tr><th>CO<sub>2</sub></th><th>TVOC</th></tr>";
-    text += "<tr><td>" + xmlDoc.getElementsByTagName("ccs811_eco2")[0].childNodes[0].nodeValue;
-    text += "</td><td>" + xmlDoc.getElementsByTagName("ccs811_tvoc")[0].childNodes[0].nodeValue;
-    text += "</td></tr></table>";
+    text += add_CCS811(temp[0].childNodes);
   }
   //
   // TSL2561
@@ -238,11 +206,128 @@ function dispDevData(xml)
   temp = xmlDoc.getElementsByTagName("tsl2561");
   if (temp.length > 0)
   {
-    text += "<table><tr><th>Data 0</th><th>Data 1</th><th>Lux</th></tr>";
-    text += "<tr><td>" + xmlDoc.getElementsByTagName("tsl2561_data0")[0].childNodes[0].nodeValue;
-    text += "</td><td>" + xmlDoc.getElementsByTagName("tsl2561_data1")[0].childNodes[0].nodeValue;
-    text += "</td><td>" + xmlDoc.getElementsByTagName("tsl2561_lux")[0].childNodes[0].nodeValue;
-    text += "</td></tr></table>";
+    text += add_TSL2561(temp[0].childNodes);
   }
   document.getElementById("DevData").innerHTML = text;
+}
+
+function add_BME280(nodeList)
+{
+  var x;
+  var node;
+  var text = "<table><tr><th>Temperature</th><th>Pressure</th><th>Humidity</th></tr>";
+  var temp_c;
+  var pressure;
+  var humidity;
+
+  //
+  // Yes, this is a "for-case" type structure.  It's done this way because it's
+  // possible that the order of the nodes may change.
+  //
+  for (x = 0; x < nodeList.length; x++)
+  {
+    node = nodeList[x];
+    switch (node.nodeName)
+    {
+      case "bme280_temp_c":
+        temp_c = parseFloat(node.childNodes[0].nodeValue);
+        break;
+      case "bme280_pressure_pa":
+        pressure = node.childNodes[0].nodeValue;
+        break;
+      case "bme280_humidity":
+        humidity = parseFloat(node.childNodes[0].nodeValue);
+        break;
+    }
+  }
+  if (unitMetric == 1)
+  {
+    text += "<tr><td class=\"container\"><img src=\"/Thermometer?min=0&max=100&value=" +
+            Math.round(temp_c) + "\"></img></td>";
+    text += "<td class=\"container\"><img src=\"/Thermometer?min=90000&max=100000&value=" +
+            Math.round(pressure) + "\"></img></td>";
+    text += "<td class=\"container\"><img src=\"/Dial?min=0&max=100&value=" + Math.round(humidity) +
+           "\"></img></td></tr>";
+    text += "<tr><td class=\"container\">" + temp_c.toFixed(1) + "&deg;C</td>";
+    text += "<td class=\"container\">" + Math.round(pressure) + "Pa</td>";
+  }
+  else
+  {
+    temp_f = (temp_c*9/5) + 32;
+    pressure = pressure/3386.39;
+    text += "<tr><td class=\"container\"><img src=\"/Thermometer?min=50&max=150&value=" +
+            Math.round(temp_f) + "\"></img></td>";
+    text += "<td class=\"container\"><img src=\"/Thermometer?min=2500&max=3500&value=" +
+            Math.round(pressure*100.0) + "\"></img></td>";
+    text += "<td class=\"container\"><img src=\"/Dial?min=0&max=100&value=" + Math.round(humidity) +
+           "\"></img></td></tr>";
+    text += "<tr><td class=\"container\">" + temp_f.toFixed(1) + "&deg;F</td>";
+    text += "<td class=\"container\">" + pressure.toFixed(2) + "inHg</td>";
+  }
+  text += "<td class=\"container\">" + humidity.toFixed(1) + "%</td></tr>";
+  text += "</table>";
+  return text;
+}
+
+function add_CCS811(nodeList)
+{
+  var x;
+  var node;
+  var text = "<table><tr><th>CO<sub>2</sub></th><th>TVOC</th></tr>";
+  var val_eco2;
+  var val_tvoc;
+
+  //
+  // Yes, this is a "for-case" type structure.  It's done this way because it's
+  // possible that the order of the nodes may change.
+  //
+  for (x = 0; x < nodeList.length; x++)
+  {
+    node = nodeList[x];
+    switch (node.nodeName)
+    {
+      case "ccs811_eco2":
+        val_eco2 = node.childNodes[0].nodeValue;
+        break;
+      case "ccs811_tvoc":
+        val_tvoc = node.childNodes[0].nodeValue;
+        break;
+    }
+  }
+  text += "<tr><td>" + val_eco2 + "</td><td>" + val_tvoc + "</td></tr></table>";
+  return text;
+}
+
+function add_TSL2561(nodeList)
+{
+  var x;
+  var node;
+  var text = "<table><tr><th>Data 0</th><th>Data 1</th><th>Lux</th></tr>";
+  var val_data0;
+  var val_data1;
+  var val_lux;
+
+  //
+  // Yes, this is a "for-case" type structure.  It's done this way because it's
+  // possible that the order of the nodes may change.
+  //
+  for (x = 0; x < nodeList.length; x++)
+  {
+    node = nodeList[x];
+    switch (node.nodeName)
+    {
+      case "tsl2561_data0":
+        val_data0 = node.childNodes[0].nodeValue;
+        break;
+      case "tsl2561_data1":
+        val_data1 = node.childNodes[0].nodeValue;
+        break;
+      case "tsl2561_lux":
+        val_lux = node.childNodes[0].nodeValue;
+        break;
+    }
+  }
+  text += "<tr><td>" + val_data0 + "</td><td>" + val_data1 + "</td><td>" + val_lux;
+  text += "</td></tr></table>";
+  return text;
 }

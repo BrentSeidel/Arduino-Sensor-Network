@@ -1,5 +1,30 @@
 package body rs485 is
+   --
+   -- Function to convert numeric code to validity
+   --
+   function code_to_validity(c : Integer) return msg_validity is
+      t : msg_validity;
+   begin
+      case c is
+         when 0 =>
+            t := DATA_VALID;
+         when 1 =>
+            t := DATA_STALE;
+         when 2 =>
+            t := DATA_INIT;
+         when 3 =>
+            t := DATA_SENSOR;
+         when 4 =>
+            t := DATA_NO_COMPUTED;
+         when others =>
+            t := DATA_INVALID;
+      end case;
+      return t;
+   end;
 
+   --
+   -- Task to read from the RS-485 interface
+   --
    task body state_machine is
       buff : Character;
       file : Char_IO.File_Type;
@@ -238,31 +263,33 @@ package body rs485 is
          t(i*4 + 3) := Character'Val(b3);
          t(i*4 + 4) := Character'Val(b4);
       end loop;
-      return (validity => 0, aging => Ada.Calendar.Clock, message => MSG_TYPE_INFO,
-              num_addr => d(0),
-                name => t);
+      return (validity => DATA_VALID, aging => Ada.Calendar.Clock,
+              message => MSG_TYPE_INFO, num_addr => d(0), name => t);
    end;
 
    function parse_msg_BME280(d : data_buffer_type) return data_record is
    begin
-      return (validity => 0, aging => Ada.Calendar.Clock, message => MSG_TYPE_BME280,
+      return (validity => code_to_validity(Integer(d(0))), aging => Ada.Calendar.Clock,
+              message => MSG_TYPE_BME280,
               BME280_status => d(0),
-               BME280_age => d(1),
-               BME280_temp_c => Float(d(2)*5+128)/25600.0,
-               BME280_pressure_pa => Float(d(3))/256.0,
-               BME280_humidity => Float(d(4))/1024.0);
+              BME280_age => d(1),
+              BME280_temp_c => Float(d(2)*5+128)/25600.0,
+              BME280_pressure_pa => Float(d(3))/256.0,
+              BME280_humidity => Float(d(4))/1024.0);
    end;
 
    function parse_msg_discrete(d : data_buffer_type) return data_record is
    begin
-      return (validity => 0, aging => Ada.Calendar.Clock, message => MSG_TYPE_DISCRETE,
+      return (validity => DATA_VALID, aging => Ada.Calendar.Clock,
+              message => MSG_TYPE_DISCRETE,
               disc_type => d(0),
               disc_value => d(1));
    end;
 
    function parse_msg_CCS811(d : data_buffer_type) return data_record is
    begin
-      return (validity => 0, aging => Ada.Calendar.Clock, message => MSG_TYPE_CCS811,
+      return (validity => code_to_validity(Integer(d(0))), aging => Ada.Calendar.Clock,
+              message => MSG_TYPE_CCS811,
               CCS811_status => d(0),
               CCS811_age => d(1),
               CCS811_eCO2 => d(2),
@@ -271,7 +298,8 @@ package body rs485 is
 
    function parse_msg_TSL2561(d : data_buffer_type) return data_record is
    begin
-      return (validity => 0, aging => Ada.Calendar.Clock, message => MSG_TYPE_TSL2561,
+      return (validity => code_to_validity(Integer(d(0))), aging => Ada.Calendar.Clock,
+              message => MSG_TYPE_TSL2561,
               TSL2561_status => d(0),
               TSL2561_age => d(1),
               TSL2561_data0 => d(2),
@@ -281,7 +309,8 @@ package body rs485 is
 
    function parse_msg_unknown(d : data_buffer_type) return data_record is
    begin
-      return (validity => 0, aging => Ada.Calendar.Clock, message => MSG_TYPE_UNKNOWN);
+      return (validity => DATA_VALID, aging => Ada.Calendar.Clock,
+              message => MSG_TYPE_UNKNOWN);
    end;
 
    --
@@ -308,7 +337,7 @@ package body rs485 is
       --
       t := data_store.Element(d);
       while (t.Length <= Ada.Containers.Count_Type(a)) loop
-         t.Append((Validity => 0, aging => Ada.Calendar.Clock,
+         t.Append((Validity => DATA_VALID, aging => Ada.Calendar.Clock,
                                message => MSG_TYPE_UNKNOWN));
       end loop;
       t.Replace_Element(a, data);
