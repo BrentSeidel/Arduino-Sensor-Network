@@ -219,6 +219,9 @@ function add_BME280(nodeList)
   var temp_c;
   var pressure;
   var humidity;
+  var validity;
+  var age;
+  var td_class = "container";
 
   //
   // Yes, this is a "for-case" type structure.  It's done this way because it's
@@ -229,6 +232,12 @@ function add_BME280(nodeList)
     node = nodeList[x];
     switch (node.nodeName)
     {
+      case "validity":
+        validity = node.childNodes[0].nodeValue;
+        break;
+      case "aging":
+        age = parseFloat(node.childNodes[0].nodeValue);
+        break;
       case "bme280_temp_c":
         temp_c = parseFloat(node.childNodes[0].nodeValue);
         break;
@@ -240,31 +249,48 @@ function add_BME280(nodeList)
         break;
     }
   }
-  if (unitMetric == 1)
+  if (validity = "DATA_VALID")
   {
-    text += "<tr><td class=\"container\"><img src=\"/Thermometer?min=0&max=100&value=" +
-            Math.round(temp_c) + "\"></img></td>";
-    text += "<td class=\"container\"><img src=\"/Thermometer?min=90000&max=100000&value=" +
-            Math.round(pressure) + "\"></img></td>";
-    text += "<td class=\"container\"><img src=\"/Dial?min=0&max=100&value=" + Math.round(humidity) +
-           "\"></img></td></tr>";
-    text += "<tr><td class=\"container\">" + temp_c.toFixed(1) + "&deg;C</td>";
-    text += "<td class=\"container\">" + Math.round(pressure) + "Pa</td>";
+    if (age >= 10)
+    {
+      td_class += " stale";
+    }
+    if (unitMetric == 1)
+    {
+      text += "<tr><td class=\"" + td_class + "\"><img src=\"/Thermometer?min=0&max=100&value=" +
+              Math.round(temp_c) + "\"></img></td>";
+      text += "<td class=\"" + td_class + "\"><img src=\"/Thermometer?min=90000&max=100000&value=" +
+              Math.round(pressure) + "\"></img></td>";
+      text += "<td class=\"" + td_class + "\"><img src=\"/Dial?min=0&max=100&value=" + Math.round(humidity) +
+             "\"></img></td></tr>";
+      text += "<tr><td class=\"" + td_class + "\">" + temp_c.toFixed(1) + "&deg;C</td>";
+      text += "<td class=\"" + td_class + "\">" + Math.round(pressure) + "Pa</td>";
+    }
+    else
+    {
+      temp_f = (temp_c*9/5) + 32;
+      pressure = pressure/3386.39;
+      text += "<tr><td class=\"" + td_class + "\"><img src=\"/Thermometer?min=50&max=150&value=" +
+              Math.round(temp_f) + "\"></img></td>";
+      text += "<td class=\"" + td_class + "\"><img src=\"/Thermometer?min=2500&max=3500&value=" +
+              Math.round(pressure*100.0) + "\"></img></td>";
+      text += "<td class=\"" + td_class + "\"><img src=\"/Dial?min=0&max=100&value=" + Math.round(humidity) +
+             "\"></img></td></tr>";
+      text += "<tr><td class=\"" + td_class + "\">" + temp_f.toFixed(1) + "&deg;F</td>";
+      text += "<td class=\"" + td_class + "\">" + pressure.toFixed(2) + "inHg</td>";
+    }
+    text += "<td class=\"" + td_class + "\">" + humidity.toFixed(1) + "%</td></tr>";
   }
   else
   {
-    temp_f = (temp_c*9/5) + 32;
-    pressure = pressure/3386.39;
-    text += "<tr><td class=\"container\"><img src=\"/Thermometer?min=50&max=150&value=" +
-            Math.round(temp_f) + "\"></img></td>";
-    text += "<td class=\"container\"><img src=\"/Thermometer?min=2500&max=3500&value=" +
-            Math.round(pressure*100.0) + "\"></img></td>";
-    text += "<td class=\"container\"><img src=\"/Dial?min=0&max=100&value=" + Math.round(humidity) +
-           "\"></img></td></tr>";
-    text += "<tr><td class=\"container\">" + temp_f.toFixed(1) + "&deg;F</td>";
-    text += "<td class=\"container\">" + pressure.toFixed(2) + "inHg</td>";
+    td_class += " error";
+    text += "<tr><td class=\"" + td_class + "\"><img src=\"/Thermometer?min=hello\"></img></td>";
+    text += "<td class=\"" + td_class + "\"><img src=\"/Thermometer?min=hello\"></img></td>";
+    text += "<td class=\"" + td_class + "\"><img src=\"/Dial?min=hello\"></img></td></tr>";
+    text += "<tr><td class=\"" + td_class + "\">" + validity + "&deg;F</td>";
+    text += "<td class=\"" + td_class + "\">" + validity + "inHg</td>";
+    text += "<td class=\"" + td_class + "\">" + validity + "%</td></tr>";
   }
-  text += "<td class=\"container\">" + humidity.toFixed(1) + "%</td></tr>";
   text += "</table>";
   return text;
 }
@@ -276,6 +302,8 @@ function add_CCS811(nodeList)
   var text = "<table><tr><th>CO<sub>2</sub></th><th>TVOC</th></tr>";
   var val_eco2;
   var val_tvoc;
+  var validity;
+  var age;
 
   //
   // Yes, this is a "for-case" type structure.  It's done this way because it's
@@ -286,6 +314,12 @@ function add_CCS811(nodeList)
     node = nodeList[x];
     switch (node.nodeName)
     {
+      case "validity":
+        validity = node.childNodes[0].nodeValue;
+        break;
+      case "aging":
+        age = parseFloat(node.childNodes[0].nodeValue);
+        break;
       case "ccs811_eco2":
         val_eco2 = node.childNodes[0].nodeValue;
         break;
@@ -294,7 +328,22 @@ function add_CCS811(nodeList)
         break;
     }
   }
-  text += "<tr><td>" + val_eco2 + "</td><td>" + val_tvoc + "</td></tr></table>";
+  if (validity = "DATA_VALID")
+  {
+    if (age < 10)
+    {
+      text += "<tr><td>" + val_eco2 + "</td><td>" + val_tvoc;
+    }
+    else
+    {
+      text += "<tr><td class=\"stale\">" + val_eco2 + "</td><td class=\"stale\">" + val_tvoc;
+    }
+  }
+  else
+  {
+    text += "<tr><td class=\"error\">" + validity + "</td><td class=\"error\">" + validity;
+  }
+  text += "</td></tr></table>";
   return text;
 }
 
@@ -306,6 +355,8 @@ function add_TSL2561(nodeList)
   var val_data0;
   var val_data1;
   var val_lux;
+  var validity;
+  var age;
 
   //
   // Yes, this is a "for-case" type structure.  It's done this way because it's
@@ -316,6 +367,12 @@ function add_TSL2561(nodeList)
     node = nodeList[x];
     switch (node.nodeName)
     {
+      case "validity":
+        validity = node.childNodes[0].nodeValue;
+        break;
+      case "aging":
+        age = parseFloat(node.childNodes[0].nodeValue);
+        break;
       case "tsl2561_data0":
         val_data0 = node.childNodes[0].nodeValue;
         break;
@@ -327,7 +384,23 @@ function add_TSL2561(nodeList)
         break;
     }
   }
-  text += "<tr><td>" + val_data0 + "</td><td>" + val_data1 + "</td><td>" + val_lux;
-  text += "</td></tr></table>";
+  if (validity = "DATA_VALID")
+  {
+    if (age < 10)
+    {
+      text += "<tr><td>" + val_data0 + "</td><td>" + val_data1 + "</td><td>" + val_lux;
+    }
+    else
+    {
+      text += "<tr><td class=\"stale\">" + val_data0 + "</td><td class=\"stale\">" +
+              val_data1 + "</td><td class=\"stale\">" + val_lux;
+    }
+  }
+  else
+  {
+    text += "<tr><td class=\"error\">" + validity + "</td><td class=\"error\">" +
+            validity + "</td><td class=\"error\">" + validity;
+  }
+    text += "</td></tr></table>";
   return text;
 }

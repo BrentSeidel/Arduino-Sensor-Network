@@ -1,19 +1,4 @@
-with Ada.Containers;
-use type Ada.Containers.Count_Type;
-with Ada.Float_Text_IO;
-with Ada.Streams;
-With Ada.Strings;
-with Ada.Strings.Fixed;
-with Ada.Strings.Unbounded;
-use type Ada.Strings.Unbounded.Unbounded_String;
-with Ada.Text_IO;
-with Ada.Text_IO.Unbounded_IO;
 with GNAT.Sockets;
-with BBS.embed;
-use type BBS.embed.uint32;
-with http;
-with html;
-with svg;
 with web_common;
 with rs485;
 use type rs485.message_types;
@@ -57,6 +42,10 @@ package internal is
    -- Get device data - all data from a device
    --
    procedure xml_device_data(s : GNAT.Sockets.Stream_Access; p : web_common.params.Map);
+   --
+   -- Request to send a command.
+   --
+   procedure xml_send_command(s : GNAT.Sockets.Stream_Access; p : web_common.params.Map);
 
 private
    CRLF : String renames web_common.CRLF;

@@ -1,8 +1,9 @@
+with Ada.Text_IO;
 package body rs485 is
    --
    -- Function to convert numeric code to validity
    --
-   function code_to_validity(c : Integer) return msg_validity is
+   function code_to_validity(c : BBS.embed.uint32) return msg_validity is
       t : msg_validity;
    begin
       case c is
@@ -166,12 +167,16 @@ package body rs485 is
                rs485_state := STATE_START;
          end case; -- End of main state machine
          if (status = STATE_RS485_GOT_CMD) then
-            Ada.Text_IO.Put_Line("Got cmd for device " & Integer'Image(Integer(device)) &
-                                   ", address " & Integer'Image(Integer(address)));
+            if (debug) then
+               Ada.Text_IO.Put_Line("Got cmd for device " & Integer'Image(Integer(device)) &
+                                      ", address " & Integer'Image(Integer(address)));
+            end if;
          elsif (status = STATE_RS485_GOT_MSG) then
             data_type := message_types'Val(Integer(data_type_int));
-            Ada.Text_IO.Put_Line("Got message from device " & Integer'Image(Integer(device)) &
-                                   ", address " & Integer'Image(Integer(address)));
+            if (debug) then
+               Ada.Text_IO.Put_Line("Got message from device " & Integer'Image(Integer(device)) &
+                                      ", address " & Integer'Image(Integer(address)));
+            end if;
             case data_type is
                when MSG_TYPE_INFO =>
                   temp_rec := parse_msg_info(data_buffer);
@@ -186,7 +191,7 @@ package body rs485 is
                when others =>
                   temp_rec := parse_msg_unknown(data_buffer);
             end case;
-            update_data_store(temp_rec, device, address);
+            data_store.update_data_store(temp_rec, device, address);
          end if;
       end loop;
    end state_machine;
@@ -269,9 +274,9 @@ package body rs485 is
 
    function parse_msg_BME280(d : data_buffer_type) return data_record is
    begin
-      return (validity => code_to_validity(Integer(d(0))), aging => Ada.Calendar.Clock,
+      return (validity => code_to_validity(d(0)), aging => Ada.Calendar.Clock,
               message => MSG_TYPE_BME280,
-              BME280_status => d(0),
+              BME280_status => code_to_validity(d(0)),
               BME280_age => d(1),
               BME280_temp_c => Float(d(2)*5+128)/25600.0,
               BME280_pressure_pa => Float(d(3))/256.0,
@@ -288,9 +293,9 @@ package body rs485 is
 
    function parse_msg_CCS811(d : data_buffer_type) return data_record is
    begin
-      return (validity => code_to_validity(Integer(d(0))), aging => Ada.Calendar.Clock,
+      return (validity => code_to_validity(d(0)), aging => Ada.Calendar.Clock,
               message => MSG_TYPE_CCS811,
-              CCS811_status => d(0),
+              CCS811_status => code_to_validity(d(0)),
               CCS811_age => d(1),
               CCS811_eCO2 => d(2),
               CCS811_TVOC => d(3));
@@ -298,9 +303,9 @@ package body rs485 is
 
    function parse_msg_TSL2561(d : data_buffer_type) return data_record is
    begin
-      return (validity => code_to_validity(Integer(d(0))), aging => Ada.Calendar.Clock,
+      return (validity => code_to_validity(d(0)), aging => Ada.Calendar.Clock,
               message => MSG_TYPE_TSL2561,
-              TSL2561_status => d(0),
+              TSL2561_status => code_to_validity(d(0)),
               TSL2561_age => d(1),
               TSL2561_data0 => d(2),
               TSL2561_data1 => d(3),
@@ -314,34 +319,86 @@ package body rs485 is
    end;
 
    --
-   -- Update the globally accessible data store.  The sizes of the vectors
-   -- should be fairly stable so the appends only occur early in execution.
-   -- Once the full set of data has been received, no more should be required.
-   -- Note that once a device has been seen, it will have an entry even if it
-   -- nevers shows up again.
+   -- Make the data_store_type a protected type since it is being updated by the
+   -- RS-485 state machine task and read by the various web request handler
+   -- tasks.  This should help to prevent any problems trying to read the data
+   -- while it is being updated.
    --
-   procedure update_data_store(data : data_record; dev : BBS.embed.uint32;
-                               addr : BBS.embed.uint32) is
-      d : Natural := Natural(dev);
-      a : Natural := Natural(addr);
-      t : device_vect.Vector := device_vect.Empty_Vector;
+   protected body data_store_type is
+      --
+      -- Update the globally accessible data store.  The sizes of the vectors
+      -- should be fairly stable so the appends only occur early in execution.
+      -- Once the full set of data has been received, no more should be required.
+      -- Note that once a device has been seen, it will have an entry even if it
+      -- nevers shows up again.  This should only be called in the RS485 package
+      -- from the state_machine task.
+      --
+      procedure update_data_store(data_in : data_record; dev : BBS.embed.uint32;
+                                  addr : BBS.embed.uint32) is
+         d : Natural := Natural(dev);
+         a : Natural := Natural(addr);
+         t : device_vect.Vector := device_vect.Empty_Vector;
+      begin
+         --
+         -- Make sure that the device vector is long enough
+         --
+         while (data.Length <= Ada.Containers.Count_Type(d)) loop
+            data.Append(device_vect.Empty_Vector);
+         end loop;
+         --
+         -- Make sure that the data vector for the device is long enough
+         --
+         t := data.Element(d);
+         while (t.Length <= Ada.Containers.Count_Type(a)) loop
+            t.Append((Validity => DATA_VALID, aging => Ada.Calendar.Clock,
+                      message => MSG_TYPE_UNKNOWN));
+         end loop;
+         t.Replace_Element(a, data_in);
+         data.Replace_Element(d, t);
+      end;
+      --
+      -- Extract an element from the data store.
+      --
+      function get_element(dev : Natural; addr : Natural)
+                           return data_record is
+      begin
+         return data.Element(dev).Element(addr);
+      end;
+      --
+      -- Determine the length of the data store itself.
+      --
+      function get_length return Ada.Containers.Count_Type is
+      begin
+         return data.Length;
+      end;
+      --
+      -- Since the data store is a vector of vectors, determine the length of
+      -- one of the vectors in the data store.
+      --
+      function get_length(dev : Natural) return Ada.Containers.Count_Type is
+      begin
+         return data.Element(dev).Length;
+      end;
+   end data_store_type;
+
+   --
+   -- Interface to output to send commands to the RS-485 controller.  It is in
+   -- a task to prevent multiple other tasks from simultaneously trying to send
+   -- a command and having garbled output.
+   --
+   task body rs485_cmd_type is
+      file : Ada.Text_IO.File_Type;
    begin
-      --
-      -- Make sure that the device vector is long enough
-      --
-      while (data_store.Length <= Ada.Containers.Count_Type(d)) loop
-         data_store.Append(device_vect.Empty_Vector);
+      Ada.Text_IO.Open(File     => file,
+                       Mode     => Ada.Text_IO.Out_File,
+                       Name     => input_port,
+                       form => "SHARED=YES");
+      loop
+         accept send_cmd (cmd : in String) do
+            Ada.Text_IO.Put_Line(file, cmd);
+         end send_cmd;
       end loop;
-      --
-      -- Make sure that the data vector for the device is long enough
-      --
-      t := data_store.Element(d);
-      while (t.Length <= Ada.Containers.Count_Type(a)) loop
-         t.Append((Validity => DATA_VALID, aging => Ada.Calendar.Clock,
-                               message => MSG_TYPE_UNKNOWN));
-      end loop;
-      t.Replace_Element(a, data);
-      data_store.Replace_Element(d, t);
-   end;
+--         Ada.Text_IO.Close(file);
+   end rs485_cmd_type;
 
 end;

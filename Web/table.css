@@ -15,9 +15,14 @@ th
   color: black;
 }
 
-td.error
+.error
 {
   background-color: Red;
+}
+
+.stale
+{
+  background-color: Yellow;
 }
 
 td.set

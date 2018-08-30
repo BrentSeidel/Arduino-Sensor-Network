@@ -147,7 +147,11 @@ stty -F /dev/ttyO2 raw speed 115200
 # ttyO4 rd pin P9-11, tx pin P9-13, rtsn pin P8-33, ctsn pin P8-35
 config-pin P9.11 uart
 config-pin P9.13 uart
-stty -F /dev/ttyO4 raw speed 115200
+#
+# Set the uart speed and modes.  Want raw input and nothing echoed.  The output
+# will be a completely different channel.
+#
+stty -F /dev/ttyO4 raw speed 115200 -echo -echok -echoe -echoctl -echoke
 #
 # ttyO5 rd pin P8-38, tx pin P8-37, rtsn P8-32, ctsn P8-31
 #stty -F /dev/ttyO5 raw speed 115200

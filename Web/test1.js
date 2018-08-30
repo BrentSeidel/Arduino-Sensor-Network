@@ -52,6 +52,26 @@ document.getElementById("count").innerHTML = count + " requests serviced<br>" +
                                              tasks + " current active tasks";
 }
 //
+// AJAX call to send a command
+//
+function sendCmd()
+{
+  var xhttp = new XMLHttpRequest();
+  var cmd = document.getElementById("command").value;
+
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      displayCounter(this);
+    }
+  };
+  xhttp.open("GET", "/xml/Command?command=" + cmd, true);
+  xhttp.send();
+}
+function cmdResp(xml)
+{
+  // not anything to do here.
+}
+//
 // Load the device names.  First need to get the count.  Then when that comes
 // back, loop to request each name.
 //

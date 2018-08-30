@@ -59,6 +59,7 @@ package body web_server is
          Ada.Text_IO.Put_Line(Integer'Image(web_common.counter) & " requests serviced, " &
                                 Integer'Image(web_common.task_counter.read) &
                                 " active tasks.");
+         Ada.Text_IO.Put_Line("Using server index " & Natural'Image(handler_index));
          handlers(handler_index).start(socket);
          handler_index := handler_index + 1;
          if (handler_index > num_handlers) then
@@ -226,6 +227,8 @@ package body web_server is
          internal.xml_device_data(s, p);
       elsif (name = "reload") then
          internal.html_reload_config(s);
+      elsif (name = "send-command") then
+         internal.xml_send_command(s, p);
       else
          http.not_implemented_int(s, name);
       end if;

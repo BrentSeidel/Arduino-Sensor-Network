@@ -1,3 +1,16 @@
+with Ada.Calendar;
+use type Ada.Calendar.Time;
+with Ada.Containers;
+use type Ada.Containers.Count_Type;
+with Ada.Float_Text_IO;
+with Ada.Strings.Unbounded;
+with Ada.Text_IO;
+with BBS.embed;
+use type BBS.embed.uint32;
+with http;
+with html;
+--with svg;
+
 package body internal is
 
    --
@@ -79,11 +92,11 @@ package body internal is
       http.ok(s, "text/html");
       html.html_head(s, "Device list", "Style");
       String'Write(s, "<table><tr><th>Device ID</th><th>Data</th></tr>" & CRLF);
-      for i in Natural range 0 .. Integer(rs485.data_store.Length) - 1 loop
+      for i in Natural range 0 .. Integer(rs485.data_store.get_length) - 1 loop
          String'Write(s, "<tr><td>" & Integer'Image(Integer(i)) & "</td>");
          String'Write(s, "<td><table class=""noborder"">" & CRLF);
-         for j in Natural range 0 .. Integer(rs485.data_store(i).Length) - 1 loop
-            t := rs485.data_store.Element(i).Element(j);
+         for j in Natural range 0 .. Integer(rs485.data_store.get_length(i)) - 1 loop
+            t := rs485.data_store.get_element(i, j);
             case t.message is
                when rs485.MSG_TYPE_INFO =>
                   String'Write(s, "<td class=""noborder"">");
@@ -109,7 +122,7 @@ package body internal is
                   String'Write(s, "<td class=""error"">Unknown element type</td></tr>" & CRLF);
             end case;
          end loop;
-         if (rs485.data_store.Element(i).Length = 0) then
+         if (rs485.data_store.get_length(i) = 0) then
             String'Write(s, "<td class=""error"">No data</td></tr>" & CRLF);
          end if;
          String'Write(s, "</table></td>" & CRLF);
@@ -215,7 +228,7 @@ package body internal is
    begin
       http.ok(s, "application/xml");
       String'Write(s, "<xml><length>" & Integer'Image(Integer
-                                                      (rs485.data_store.Length)) &
+                                                      (rs485.data_store.get_length)) &
                      "</length></xml>" & CRLF);
    end;
 
@@ -236,9 +249,9 @@ package body internal is
                dev_id := 0;
          end;
       end if;
-      if (dev_id >= 0) and (dev_id < Integer(rs485.data_store.Length)) then
-         if (rs485.data_store.Element(dev_id).Length > 0) then
-            t := rs485.data_store.Element(dev_id).Element(0);
+      if (dev_id >= 0) and (dev_id < Integer(rs485.data_store.get_length)) then
+         if (rs485.data_store.get_length(dev_id) > 0) then
+            t := rs485.data_store.get_element(dev_id, 0);
             String'Write(s, "<xml>");
             case t.message is
                when rs485.MSG_TYPE_INFO =>
@@ -275,12 +288,12 @@ package body internal is
                dev_id := 0;
          end;
       end if;
-      if (dev_id >= 0) and (dev_id < Integer(rs485.data_store.Length)) then
-         recs := Integer(rs485.data_store.Element(dev_id).Length);
+      if (dev_id >= 0) and (dev_id < Integer(rs485.data_store.get_length)) then
+         recs := Integer(rs485.data_store.get_length(dev_id));
          if (recs > 0) then
             String'Write(s, "<xml>");
             for i in Natural range 0 .. Natural(recs) - 1 loop
-               t := rs485.data_store.Element(dev_id).Element(i);
+               t := rs485.data_store.get_element(dev_id, i);
                case t.message is
                   when rs485.MSG_TYPE_INFO =>
                      xml_info_msg(s, t);
@@ -306,9 +319,6 @@ package body internal is
                         "</error></xml>" & CRLF);
       end if;
    end;
-   --      record
---         validity : Integer; -- Placeholder
---         aging : Ada.Calendar.Time; -- Time record was created.
 
    --
    -- Provide data in XML format
@@ -316,16 +326,22 @@ package body internal is
    -- Provide an XML version of the info message
    --
    procedure xml_info_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+      now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
    begin
-      String'Write(s, "<info><addresses>" & Integer'Image(Integer(d.num_addr)) &
+      String'Write(s, "<info><validity>" & rs485.msg_validity'Image(d.validity) &
+                     "</validity><aging>" & Duration'Image(now - d.aging) &
+                     "</aging><addresses>" & Integer'Image(Integer(d.num_addr)) &
                      "</addresses><name>" & d.name & "</name></info>");
    end;
    --
    -- Provide an XML version of the BME280 message
    --
    procedure xml_BME280_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+      now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
    begin
-      String'Write(s, "<bme280><bme280_status>" & Integer'Image(Integer(d.BME280_status)) &
+      String'Write(s, "<bme280><validity>" & rs485.msg_validity'Image(d.validity) &
+                     "</validity><aging>" & Duration'Image(now - d.aging) &
+                     "</aging><bme280_status>" & rs485.msg_validity'Image(d.BME280_status) &
                      "</bme280_status><bme280_age>" & Integer'Image(Integer(d.BME280_age)) &
                      "</bme280_age><bme280_temp_c>" & Float'Image(d.BME280_temp_c) &
                      "</bme280_temp_c><bme280_pressure_pa>" & Float'Image(d.BME280_pressure_pa) &
@@ -336,8 +352,11 @@ package body internal is
    -- Provide an XML version of the discrete message
    --
    procedure xml_discrete_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+      now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
    begin
-      String'Write(s, "<discrete><disc_type>" & Integer'Image(Integer(d.disc_type)) &
+      String'Write(s, "<discrete><validity>" & rs485.msg_validity'Image(d.validity) &
+                     "</validity><aging>" & Duration'Image(now - d.aging) &
+                     "</aging><disc_type>" & Integer'Image(Integer(d.disc_type)) &
                      "</disc_type><disc_value>" & Integer'Image(Integer(d.disc_value)) &
                      "</disc_value></discrete>");
    end;
@@ -345,8 +364,11 @@ package body internal is
    -- Provide an XML version of the CCS811 message
    --
    procedure xml_ccs811_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+      now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
    begin
-      String'Write(s, "<ccs811><ccs811_status>" & Integer'Image(Integer(d.CCS811_status)) &
+      String'Write(s, "<ccs811><validity>" & rs485.msg_validity'Image(d.validity) &
+                     "</validity><aging>" & Duration'Image(now - d.aging) &
+                     "</aging><ccs811_status>" & rs485.msg_validity'Image(d.CCS811_status) &
                      "</ccs811_status><ccs811_age>" & Integer'Image(Integer(d.CCS811_age)) &
                      "</ccs811_age><ccs811_eco2>" & Integer'Image(Integer(d.CCS811_eCO2)) &
                      "</ccs811_eco2><ccs811_tvoc>" & Integer'Image(Integer(d.CCS811_TVOC)) &
@@ -356,14 +378,33 @@ package body internal is
    -- Provide an XML version of the TSL2561 message
    --
    procedure xml_tsl2561_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+      now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
    begin
       null;
-      String'Write(s, "<tsl2561><tsl2561_status>" & Integer'Image(Integer(d.TSL2561_status)) &
+      String'Write(s, "<tsl2561><validity>" & rs485.msg_validity'Image(d.validity) &
+                     "</validity><aging>" & Duration'Image(now - d.aging) &
+                     "</aging><tsl2561_status>" & rs485.msg_validity'Image(d.TSL2561_status) &
                      "</tsl2561_status><tsl2561_age>" & Integer'Image(Integer(d.TSL2561_age)) &
                      "</tsl2561_age><tsl2561_data0>" & Integer'Image(Integer(d.TSL2561_data0)) &
                      "</tsl2561_data0><tsl2561_data1>" & Integer'Image(Integer(d.TSL2561_data1)) &
                      "</tsl2561_data1><tsl2561_lux>" & Integer'Image(Integer(d.TSL2561_lux)) &
                      "</tsl2561_lux></tsl2561>");
+   end;
+   --
+   -- Request to send a command.
+   --
+   procedure xml_send_command(s : GNAT.Sockets.Stream_Access; p : web_common.params.Map) is
+   begin
+      if (web_common.params.Contains(p, "command")) then
+         declare
+            cmd : constant String := web_common.params.Element(p, "command");
+         begin
+            rs485.rs485_cmd_type.send_cmd(cmd);
+            String'Write(s, "<xml><command>" & cmd & "</command></xml>");
+         end;
+      else
+         String'Write(s, "<xml><error>No command supplied</error></xml>");
+      end if;
    end;
 
 end;
