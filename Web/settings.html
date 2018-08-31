@@ -5,25 +5,16 @@
 <body>
 <script src="JSTest"></script>
 <p>This is the settings page that will eventually be used to support some type of settings.</p>
-<button type="button" onclick="test()">Test JS</button>
-<p id="demo">JavaScript not available</p>
 <button type="button" onclick="loadCounter()">Transactions</button>
 <p id="count">Transaction count goes here</p>
 <button type="button" onclick="loadNames()">Load Device Names</button>
 <div id="devices"></div>
 <div id="DevData"></div>
-<button type="button" onclick="animateThings()">Animate</button>
-<img id="temp1" src="/Thermometer?min=100&max=350&value=250" alt="Thermometer example"></img>
-<img id="temp2" src="/Thermometer?value=125" alt="Thermometer example"></img>
-<img id="dial1" src="/Dial?min=100&max=200&value=150" alt="Dial example"></img>
-<p>Value for first thermometer: <input type="number" id="t1" onchange="setT1()"></input></p>
-<p>Value for second thermometer: <input type="number" id="t2" onchange="setT2()"></input></p>
-<p>Value for dial: <input type="number" id="d1" onchange="setD1()"></input></p>
 <hr/>
-<p>Enter a number: <input type="number" id="num1" name="num1" onchange="calculate()"></input></p>
-<p>Enter another number: <input type="number" id="num2" name="num2" onchange="calculate()"></input></p>
-<p>The total is: <input type="number" id="num3" name="num3" disabled></input></p>
-<hr/>
-<p>Send a command: <input id="command" name="command" onchange="sendCmd()"></input></p>
+<button type="button" onclick="sendCommand('!A')">LEDs Off</button>
+<button type="button" onclick="sendCommand('!B')">LEDs On</button>
+<button type="button" onclick="sendCommand('!C')">LEDs Toggle</button>
+<button type="button" onclick="sendCommand('!D')">Request IDs</button>
+<p>Send arbitrary command: <input id="command" name="command" onchange="sendCmd()"></input></p>
 <p id="cmdResp">Command response</p>
 <p>Go <a href="/">back</a> to the main page.</p>
