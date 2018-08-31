@@ -48,8 +48,8 @@ function displayCounter(xml)
   var count = xmlDoc.getElementsByTagName("counter")[0].childNodes[0].nodeValue;
   var tasks = xmlDoc.getElementsByTagName("tasks")[0].childNodes[0].nodeValue;
 
-document.getElementById("count").innerHTML = count + " requests serviced<br>" +
-                                             tasks + " current active tasks";
+  document.getElementById("count").innerHTML = count + " requests serviced<br>" +
+                                               tasks + " current active tasks";
 }
 //
 // AJAX call to send a command
@@ -61,7 +61,7 @@ function sendCmd()
 
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
-      displayCounter(this);
+      cmdResp(this);
     }
   };
   xhttp.open("GET", "/xml/Command?command=" + cmd, true);
@@ -69,7 +69,20 @@ function sendCmd()
 }
 function cmdResp(xml)
 {
-  // not anything to do here.
+  var xmlDoc = xml.responseXML;
+  var cmd = xmlDoc.getElementsByTagName("command");
+  var err = xmlDoc.getElementsByTagName("error");
+
+  if (cmd.length > err.length)
+  {
+    document.getElementById("cmdResp").innerHTML = "Got command \"" +
+                                       cmd[0].childNodes[0].nodeValue + "\"";
+  }
+  else
+  {
+    document.getElementById("cmdResp").innerHTML = "Error message \"" +
+                                        error[0].childNodes[0].nodeValue + "\"";
+  }
 }
 //
 // Load the device names.  First need to get the count.  Then when that comes

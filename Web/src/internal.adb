@@ -395,15 +395,16 @@ package body internal is
    --
    procedure xml_send_command(s : GNAT.Sockets.Stream_Access; p : web_common.params.Map) is
    begin
+      http.ok(s, "application/xml");
       if (web_common.params.Contains(p, "command")) then
          declare
             cmd : constant String := web_common.params.Element(p, "command");
          begin
             rs485.rs485_cmd_type.send_cmd(cmd);
-            String'Write(s, "<xml><command>" & cmd & "</command></xml>");
+            String'Write(s, "<xml><command>" & cmd & "</command></xml>" & CRLF);
          end;
       else
-         String'Write(s, "<xml><error>No command supplied</error></xml>");
+         String'Write(s, "<xml><error>No command supplied</error></xml>" & CRLF);
       end if;
    end;
 
