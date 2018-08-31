@@ -8,6 +8,9 @@
 // Change this to whichever port is hooked up to RS-485.  For the Uno, use the only
 // serial port.  For the Mega and Due, use Serial3
 //
+// To allow commands from a BeagleBone Black, a Mega or Due is required.  In this case,
+// the main RS-485 network is on Serial3 and the commands are input on Serial2.
+//
 #if defined (__AVR_ATmega328P__)
 HardwareSerial *rs485 = &Serial;
 #define RS485_TX_COMPLETE (SERIAL0_TX_COMPLETE)
@@ -41,18 +44,12 @@ const uint8_t CMD_LED_ON = 2;     // Command all sensors to turn their LED on
 const uint8_t CMD_LED_TOGGLE = 3; // Command all sensors to toggle their LED (default case)
 const uint8_t CMD_ID = 4;         // Request ID from all sensor units
 //
-// Command pins
+//  Command states
 //
-const uint8_t CMD_PIN_D0 = 4;
-const uint8_t CMD_PIN_D1 = 5;
-const uint8_t CMD_PIN_D2 = 6;
-const uint8_t CMD_PIN_D3 = 7;
-const uint8_t CMD_PIN_ENABLE = 3; // Set high to indicate a command is valid
-const uint8_t cmd_pins[] = {CMD_PIN_ENABLE, CMD_PIN_D0, CMD_PIN_D1, CMD_PIN_D2, CMD_PIN_D3};
-const uint8_t NUM_PINS = 5;
-//
+const uint8_t CMD_STATE_START = 0;
+const uint8_t CMD_STATE_CMD = 1;
+uint8_t cmd_state = CMD_STATE_START;
 uint8_t read_cmd();
-//
 //
 // Delays
 //
@@ -61,7 +58,7 @@ uint8_t read_cmd();
 //
 // Device ID and name
 //
-// Controller node ID (this node)
+// Controller node ID (this node).  Controller is always node 0.
 //
 #define CTRL_NODE 0
 //
@@ -88,6 +85,7 @@ void setup()
   int x;
 
   rs485->begin(BAUD_RATE);
+  Serial2.begin(BAUD_RATE);
   Serial.begin(BAUD_RATE);
   pinMode(TX_RX, OUTPUT);  // RS-485 direction control
   pinMode(CMD_PIN, OUTPUT);
@@ -96,10 +94,6 @@ void setup()
   {
     node_state[x] = 0;
     max_addr[x] = 0;
-  }
-  for (x = 0; x < NUM_PINS; x++)
-  {
-    pinMode(cmd_pins[x], INPUT);
   }
 }
 
@@ -114,29 +108,28 @@ void loop()
 //
 // Process commands coming in on the discretes.
 //
-  command = read_cmd();
-  if (command == CMD_LED_OFF)
+  switch (read_cmd())
   {
-    led_command = CMD_LED_OFF;
-    led_state = 0;
-  }
-  if (command == CMD_LED_ON)
-  {
-    led_command = CMD_LED_ON;
-    led_state = 1;
-  }
-  if (command == CMD_LED_TOGGLE)
-  {
-    led_command = CMD_LED_TOGGLE;
-  }
-  if (command == CMD_ID)
-  {
-    for (x = 0; x < NUM_NODES; x++)
-    {
-      node_state[x] = 0;
-      max_addr[x] = 0;
-    }
-    command = CMD_NULL;
+    case CMD_LED_OFF:
+      led_command = CMD_LED_OFF;
+      led_state = 0;
+      break;
+    case CMD_LED_ON:
+      led_command = CMD_LED_ON;
+      led_state = 1;
+      break;
+    case CMD_LED_TOGGLE:
+      led_command = CMD_LED_TOGGLE;
+      break;
+    case CMD_ID:
+      for (x = 0; x < NUM_NODES; x++)
+      {
+        node_state[x] = 0;
+        max_addr[x] = 0;
+      }
+      break;
+    default:
+      break;
   }
 //
 // Main state machine
@@ -156,10 +149,10 @@ void loop()
       }
       else
       {
-        Serial.print("Requesting device ");
-        Serial.print(node_id, DEC);
-        Serial.print(" address ");
-        Serial.println(node_state[node_id]);
+//        Serial.print("Requesting device ");
+//        Serial.print(node_id, DEC);
+//        Serial.print(" address ");
+//        Serial.println(node_state[node_id]);
       }
       digitalWrite(TX_RX, HIGH);  // Prepare to transmit
       if (node_id == CTRL_NODE)
@@ -223,8 +216,8 @@ void loop()
       reply_state = rs485_state_machine(rs485, &Serial, false);
       if (reply_state == STATE_RS485_GOT_MSG)
       {
-        Serial.print("Got reply from node ");
-        Serial.println(device, DEC);
+//        Serial.print("Got reply from node ");
+//        Serial.println(device, DEC);
         if (device == node_id)
         {
           if  (address == 0)
@@ -264,17 +257,48 @@ void loop()
 
 uint8_t read_cmd()
 {
-  uint8_t enabled = digitalRead(CMD_PIN_ENABLE);
-  uint8_t command = 1*digitalRead(CMD_PIN_D0) + 2*digitalRead(CMD_PIN_D1) +
-          4*digitalRead(CMD_PIN_D2) + 8*digitalRead(CMD_PIN_D3);
+  int data = Serial2.read();
+  uint8_t command = CMD_NULL;
 
-  if (enabled)
+  if (data > 0)
   {
-    return command;
+    switch (cmd_state)
+    {
+      case CMD_STATE_START:
+        if (data == '!')
+        {
+          cmd_state = CMD_STATE_CMD;
+        }
+        break;
+      case CMD_STATE_CMD:
+        switch (data)
+        {
+          case 'A':
+            Serial.println("Command LED Off");
+            command = CMD_LED_OFF;
+            break;
+          case 'B':
+            Serial.println("Command LED On");
+            command = CMD_LED_ON;
+            break;
+          case 'C':
+            Serial.println("Command LED Toggle");
+            command = CMD_LED_TOGGLE;
+            break;
+          case 'D':
+            Serial.println("Command Identify");
+            command = CMD_ID;
+            break;
+          default:
+            break;
+        }
+        cmd_state = CMD_STATE_START;
+        break;
+      default:
+        cmd_state = CMD_STATE_START;
+        break;
+    }
+    Serial.write(data);
   }
-  else
-  {
-    return CMD_NULL;
-  }
+  return command;
 }
-
