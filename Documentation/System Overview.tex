@@ -1,0 +1,36 @@
+%
+% Last Revision: $Rev$
+% Revision date: $Date$
+% Author: $Author$
+%
+\documentclass[10pt, openany, draft]{article}
+
+\usepackage{fancyhdr}
+\usepackage{multind}
+\usepackage{geometry}
+\geometry{letterpaper}
+%
+% Front Matter
+%
+\title{Arduino Sensor Network Documentation}
+\author{Brent Seidel \\ Phoenix, AZ}
+\date{ \today }
+%========================================================
+%%% BEGIN DOCUMENT
+\begin{document}
+\maketitle
+\section{Synopsis}
+This document will contain descriptions of the various components of the Arduino Sensor Network.  First is a brief overview of the various components and then a discussion of the communication protocol used between them.
+
+\section{Components}
+The network consists of two required components plus optional components.  The required components are a single controller and one or more responders.  Listeners may optionally be added as they simply monitor the bus traffic and do not transmit.  A BeagleBone Black listener is used to present the data from the network on web pages.
+\subsection{Controller}
+\subsection{Responder}
+\subsection{Listener}
+
+\section{Protocol}
+\subsection{Physical Layer}
+The physical layer is RS-485 twisted pair.  CAT-5 cable is used because I happen to have a bunch of CAT-5 available and it works.  One pair is used leaving the other pairs available for other uses such as power distribution.
+\subsection{Messages}
+
+\end{document}
