@@ -12,7 +12,7 @@
 %
 % Front Matter
 %
-\title{Arduino Sensor Network Documentation}
+\title{Arduino Sensor Network Documentation -- Overview}
 \author{Brent Seidel \\ Phoenix, AZ}
 \date{ \today }
 %========================================================
@@ -24,13 +24,42 @@ This document will contain descriptions of the various components of the Arduino
 
 \section{Components}
 The network consists of two required components plus optional components.  The required components are a single controller and one or more responders.  Listeners may optionally be added as they simply monitor the bus traffic and do not transmit.  A BeagleBone Black listener is used to present the data from the network on web pages.
+
 \subsection{Controller}
+The controller is responsible for the operation of the bus.  It sends a request command to each node on the bus and waits for a response.  It may also send data messages.  Typically requests are done in a round-robin fashion -- request node 1, request node 2, etc.  If a node does not respond within a timeout period, it is marked as missing and the next node is polled.
+
 \subsection{Responder}
+One or more responders may be attached to the bus.  Each responder can produce one or more addresses of data.  The first address (address 0) is used for node identification.  It contains the name and the number of addresses produced by the node.  Additional addresses are produced depending on the sensors attached to the node and the node configuration.
+
 \subsection{Listener}
+Any number of listeners may be added to the network.  These simply monitor the network traffic and usually present it in a different format.  A listener can also be used to perform actions based on certain data on the network, though it would probably be better to use a responder that can report back what it is doing.
+
+The BeagleBone Black is used as one example of a listener that presents the data on a web page.  Another example listener is an Arduino that simply listens to the bus and copies the characters to the host computer for display.
 
 \section{Protocol}
 \subsection{Physical Layer}
 The physical layer is RS-485 twisted pair.  CAT-5 cable is used because I happen to have a bunch of CAT-5 available and it works.  One pair is used leaving the other pairs available for other uses such as power distribution.
+
+\subsection{Node Organization}
+Each node is given a unique node ID.  The controller node is given ID 0.  The message format allows 32 bits for the node ID though typically small numbers would be used.  Each node can produce a number of addresses of data.  Address 0 is used to provide node information.  The information includes the number of addresses that the node can produce and the node's name.
+
 \subsection{Messages}
+Two types of messages are defined: Requests which only come from the controller and request a specific address of data from a specific node, and Responses which are the data produced by a responder in response to a request.
+
+To aid in debugging, the format of the messages is in ASCII text.  The type of message is indicated by the first character, `\texttt{\@}' for requests and `\texttt{\#}' for responses.  The first two elements in both types of messages is the device ID and the address separated by a forward slash, `\texttt{/}'.  The end of the message is a percent sign, `\texttt{\%}' followed by a (currently unimplemented) checksum and a CR-LF.
+
+All of the numbers are 32 bit unsigned integers expressed in hexadecimal, with leading zeros optional.  
+
+\subsubsection{Requests}
+Requests should only be sent by the controller node.  The first character in a request message is an ampersand, `\texttt{\@}'.  This is followed by the device ID in hex, followed by a forward slash, `\texttt{/}'.  Then the address in hex, followed by a percent sign, `\texttt{\%}'.  This is followed by a currently unused checksum in hex.  The message is terminated by a CR-LF.
+
+A typical request looks something like, `\texttt{@00000001/00000000\%FF}'.  This requests address 0 from device 1.  Since leading zeros are optional, the same message can also be expressed as, `\texttt{@1/0\%FF}'.
+
+\subsubsection{Responses}
+Responses are sent in response to a request from the controller node.  The first character in a response message is an octathorpe, `\texttt{\#}'.  This is followed by the device ID in hex, the address in hex, and the message type in hex, separated by a forward slash, `\texttt{/}', and ended by an ampersand, `\texttt{\&}'.  This is followed by the data fields.  These are up to 32 32-bit hex numbers separated by apmersands, `\texttt{\&}' and terminated by a percent sign, `\texttt{\%}'.  This is followed by a currently unused checksum in hex.  The message is terminated by a CR-LF.
+
+The format of the responses flexible and the number of data words sent depends on the type of message.  It may even vary between messages of the same type.
+
+If the controller has data to send, it can send a response message without sending a request.
 
 \end{document}
