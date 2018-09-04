@@ -133,7 +133,6 @@ package rs485 is
    -- Function to convert numeric code to validity
    --
    function code_to_validity(c : BBS.embed.uint32) return msg_validity;
-
    --
    -- Interface to output to send commands to the RS-485 controller.  It is in
    -- a task to prevent multiple other tasks from simultaneously trying to send
@@ -142,6 +141,14 @@ package rs485 is
    task rs485_cmd_type is
       entry send_cmd(cmd : String);
    end rs485_cmd_type;
+
+   --
+   -- Functions and procedures to get and set the debugging flags
+   --
+   function get_debug_char return Boolean;
+   function get_debug_msg return Boolean;
+   procedure set_debug_char(f : Boolean);
+   procedure set_debug_msg(f : Boolean);
 
 private
    --
@@ -157,8 +164,11 @@ private
    --
    CR : constant Character := Ada.Characters.Latin_1.CR;
    LF : constant Character := Ada.Characters.Latin_1.LF;
-
-   debug : constant Boolean := False;
+   --
+   -- Flags to control display of debugging messages
+   --
+   debug_msg : Boolean := False;  -- Identify messages received
+   debug_char : Boolean := False; -- Display characters received
 
    type states is (STATE_START, STATE_GET_MSG_DEV, STATE_GET_MSG_ADDR,
                    STATE_GET_MSG_TYPE, STATE_START_BUFFER, STATE_BUFFER_ENTRY,

@@ -1,14 +1,14 @@
-with Ada.Characters.Latin_1;
-with Ada.Streams;
-with Ada.Streams.Stream_IO;
-with Ada.Strings;
-with Ada.Strings.Hash_Case_Insensitive;
-with Ada.Strings.Equal_Case_Insensitive;
+--with Ada.Characters.Latin_1;
+--with Ada.Streams;
+--with Ada.Streams.Stream_IO;
+--with Ada.Strings;
+--with Ada.Strings.Hash_Case_Insensitive;
+--with Ada.Strings.Equal_Case_Insensitive;
 with Ada.Strings.Unbounded;
 use type Ada.Strings.Unbounded.Unbounded_String;
-with Ada.Text_IO;
+--with Ada.Text_IO;
 with GNAT.Sockets;
-with Ada.Containers.Indefinite_Hashed_Maps;
+--with Ada.Containers.Indefinite_Hashed_Maps;
 with web_common;
 
 package http is
@@ -61,7 +61,21 @@ package http is
                           item : out Ada.Strings.Unbounded.Unbounded_String;
                           params : in out web_common.params.Map);
 
+
+   --
+   -- Procedures and functions to get and set the debugging flags.
+   --
+   function get_debug_req return Boolean;
+   function get_debug_head return Boolean;
+   procedure set_debug_req(f : Boolean);
+   procedure set_debug_head(f : Boolean);
+
 private
    CRLF : String renames web_common.CRLF;
 
+   --
+   -- Flags to control printing of requests and headers for debugging purposes.
+   --
+   debug_req : Boolean := False;
+   debug_head : Boolean := False;
 end;

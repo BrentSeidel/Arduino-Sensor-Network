@@ -58,6 +58,7 @@ function sendCmd()
 }
 //
 // AJAX response to display the command response.
+//
 function cmdResp(xml)
 {
   var xmlDoc = xml.responseXML;
@@ -113,7 +114,7 @@ function reqNames(xml)
 //
 function sendDeviceRequest(dev)
 {
-  xhttp = new XMLHttpRequest();
+  var xhttp = new XMLHttpRequest();
 
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
@@ -147,7 +148,7 @@ function displayName(xml, device)
 //
 function reqDevData(dev)
 {
-  xhttp = new XMLHttpRequest();
+  var xhttp = new XMLHttpRequest();
 
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
@@ -175,6 +176,109 @@ function dispDevData(xml)
     text = "<h1>" + name[0].childNodes[0].nodeValue + "</h1>";
   }
     document.getElementById("DevData").innerHTML = text;
+}
+//
+// Send request for debugging
+//
+function debug_req(index)
+{
+  var xhttp = new XMLHttpRequest();
+  var item;
+  var state;
+  var req = "/xml/Debug";
+
+  if (index >= 0)
+  {
+    item = ["rs485.char", "rs485.msg", "http.msg", "http.head", "web.dbg"][index];
+    req += "?" + item + "=";
+    state = document.getElementById(item).checked;
+    if (state == true)
+    {
+      req += "True";
+    }
+    else
+    {
+      req += "False"
+    }
+  }
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      debug_resp(this);
+    }
+  }
+  xhttp.open("GET", req, true);
+  xhttp.send();
+}
+//
+// Display response with debugging information
+//
+function debug_resp(xml)
+{
+  var xmlDoc = xml.responseXML;
+  var item;
+
+  item = xmlDoc.getElementsByTagName("rs485.char");
+  if (item.length > 0)
+  {
+    if (item[0].childNodes[0].nodeValue == "TRUE")
+    {
+      console.log("Setting rs485.char to true.");
+      document.getElementById("rs485.char").checked = true;
+    }
+    else
+    {
+      console.log("Setting rs485.char to false.");
+      document.getElementById("rs485.char").checked = false;
+    }
+  }
+  item = xmlDoc.getElementsByTagName("rs485.msg");
+  if (item.length > 0)
+  {
+    if (item[0].childNodes[0].nodeValue == "TRUE")
+    {
+      document.getElementById("rs485.msg").checked = true;
+    }
+    else
+    {
+      document.getElementById("rs485.msg").checked = false;
+    }
+  }
+  item = xmlDoc.getElementsByTagName("http.msg");
+  if (item.length > 0)
+  {
+    if (item[0].childNodes[0].nodeValue == "TRUE")
+    {
+      document.getElementById("http.msg").checked = true;
+    }
+    else
+    {
+      document.getElementById("http.msg").checked = false;
+    }
+  }
+  item = xmlDoc.getElementsByTagName("http.head");
+  if (item.length > 0)
+  {
+    if (item[0].childNodes[0].nodeValue == "TRUE")
+    {
+      document.getElementById("http.head").checked = true;
+    }
+    else
+    {
+      document.getElementById("http.head").checked = false;
+    }
+  }
+  item = xmlDoc.getElementsByTagName("web.dbg");
+  if (item.length > 0)
+  {
+    if (item[0].childNodes[0].nodeValue == "TRUE")
+    {
+      document.getElementById("web.dbg").checked = true;
+    }
+    else
+    {
+      document.getElementById("web.dbg").checked = false;
+    }
+  }
 }
 
 

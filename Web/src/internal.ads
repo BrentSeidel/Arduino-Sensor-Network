@@ -43,9 +43,13 @@ package internal is
    --
    procedure xml_device_data(s : GNAT.Sockets.Stream_Access; p : web_common.params.Map);
    --
-   -- Request to send a command.
+   -- Request to send a command to the controller.
    --
    procedure xml_send_command(s : GNAT.Sockets.Stream_Access; p : web_common.params.Map);
+   --
+   -- Set and retrieve debugging flags
+   --
+   procedure xml_debugging(s : GNAT.Sockets.Stream_Access; p : web_common.params.Map);
 
 private
    CRLF : String renames web_common.CRLF;

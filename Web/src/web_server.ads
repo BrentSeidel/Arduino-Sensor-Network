@@ -29,9 +29,18 @@ package web_server is
    --
    reload_configuration : Boolean := False;
 
+   --
+   -- Set and get value of debug flag;
+   --
+   function get_debug return Boolean;
+   procedure set_debug(f : Boolean);
 private
    --
    -- The number of handler threads to create
    --
    num_handlers : Natural := 10;
+   --
+   -- Flag to control display of debug messages
+   --
+   debug : Boolean := False; -- Display requests.
 end web_server;

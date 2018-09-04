@@ -9,6 +9,7 @@ with BBS.embed;
 use type BBS.embed.uint32;
 with http;
 with html;
+with web_server;
 --with svg;
 
 package body internal is
@@ -406,6 +407,80 @@ package body internal is
       else
          String'Write(s, "<xml><error>No command supplied</error></xml>" & CRLF);
       end if;
+   end;
+   --
+   -- Set and retrieve debugging flags
+   --
+   procedure xml_debugging(s : GNAT.Sockets.Stream_Access; p : web_common.params.Map) is
+   begin
+      http.ok(s, "application/xml");
+      --
+      -- Check to see which flags to change
+      --
+      if (web_common.params.Contains(p, "rs485.char")) then
+         declare
+            cmd : constant String := web_common.params.Element(p, "rs485.char");
+         begin
+            if (cmd(1) = 'T' or cmd(1) = 't') then
+               rs485.set_debug_char(True);
+            else
+               rs485.set_debug_char(False);
+            end if;
+         end;
+      end if;
+      if (web_common.params.Contains(p, "rs485.msg")) then
+         declare
+            cmd : constant String := web_common.params.Element(p, "rs485.msg");
+         begin
+            if (cmd(1) = 'T' or cmd(1) = 't') then
+               rs485.set_debug_msg(True);
+            else
+               rs485.set_debug_msg(False);
+            end if;
+         end;
+      end if;
+      if (web_common.params.Contains(p, "http.head")) then
+         declare
+            cmd : constant String := web_common.params.Element(p, "http.head");
+         begin
+            if (cmd(1) = 'T' or cmd(1) = 't') then
+               http.set_debug_head(True);
+            else
+               http.set_debug_head(False);
+            end if;
+         end;
+      end if;
+      if (web_common.params.Contains(p, "http.msg")) then
+         declare
+            cmd : constant String := web_common.params.Element(p, "http.msg");
+         begin
+            if (cmd(1) = 'T' or cmd(1) = 't') then
+               http.set_debug_req(True);
+            else
+               http.set_debug_req(False);
+            end if;
+         end;
+      end if;
+      if (web_common.params.Contains(p, "web.dbg")) then
+         declare
+            cmd : constant String := web_common.params.Element(p, "web.dbg");
+         begin
+            if (cmd(1) = 'T' or cmd(1) = 't') then
+               web_server.set_debug(True);
+            else
+               web_server.set_debug(False);
+            end if;
+         end;
+      end if;
+      --
+      -- Build XML reply giving state of all debug flags.
+      --
+      String'Write(s, "<xml><rs485.char>" & Boolean'Image(rs485.get_debug_char) &
+                     "</rs485.char><rs485.msg>" & Boolean'Image(rs485.get_debug_msg) &
+                     "</rs485.msg><http.head>" & Boolean'Image(http.get_debug_head) &
+                     "</http.head><http.msg>" & Boolean'Image(http.get_debug_req) &
+                     "</http.msg><web.dbg>" & Boolean'Image(web_server.get_debug) &
+                     "</web.dbg></xml>" & CRLF);
    end;
 
 end;

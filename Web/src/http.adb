@@ -1,3 +1,5 @@
+with Ada.Characters.Latin_1;
+with Ada.Text_IO;
 package body http is
 
    --
@@ -134,7 +136,9 @@ package body http is
       -- The first line contains the request.  Parse it out.
       --
       line := get_line_from_stream(s);
-      Ada.Text_IO.Put_Line(Ada.Strings.Unbounded.To_String(line));
+      if (debug_req or debug_head) then
+         Ada.Text_IO.Put_Line(Ada.Strings.Unbounded.To_String(line));
+      end if;
       index := Ada.Strings.Unbounded.Index(line, " ");
       req := Ada.Strings.Unbounded.Head(line, index - 1);
       line := Ada.Strings.Unbounded.Tail(line,
@@ -164,6 +168,9 @@ package body http is
       --
       loop
          line := get_line_from_stream(s);
+         if (debug_head) then
+            Ada.Text_IO.Put_Line(Ada.Strings.Unbounded.To_String(line));
+         end if;
          --
          -- If this is a POST request, we need to find the Content-Length:
          -- header and determine the length.  To be strictly correct, the
@@ -240,5 +247,29 @@ package body http is
          end loop;
       end if;
    end;
+
+   --
+   -- Procedures and functions to get and set the debugging flags.
+   --
+   function get_debug_req return Boolean is
+   begin
+      return debug_req;
+   end;
+   --
+   function get_debug_head return Boolean is
+   begin
+      return debug_head;
+   end;
+   --
+   procedure set_debug_req(f : Boolean) is
+   begin
+      debug_req := f;
+   end;
+   --
+   procedure set_debug_head(f : Boolean) is
+   begin
+      debug_head := f;
+   end;
+   --
 
 end;

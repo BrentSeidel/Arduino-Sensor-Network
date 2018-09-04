@@ -39,6 +39,7 @@
 /xml/Devices device-count internal
 /xml/Name name internal
 /xml/DevData device-data internal
+/xml/Debug debugging internal
 #
 # Style sheet for pages.
 #

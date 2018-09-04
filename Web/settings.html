@@ -2,15 +2,23 @@
 <title>Settings Page</title>
 <link rel="stylesheet" type="text/css" href="Style">
 </head>
-<body>
+<body onload="debug_req(-1)">
 <script src="JSTest"></script>
-<p>This is the settings page that will eventually be used to support some type of settings.</p>
+<h2>Server Information</h2>
 <button type="button" onclick="loadCounter()">Transactions</button>
 <p id="count">Transaction count goes here</p>
 <button type="button" onclick="loadNames()">Load Device Names</button>
 <div id="devices"></div>
 <div id="DevData"></div>
 <hr/>
+<h2>Debugging Control</h2>
+<input type="checkbox" onclick="debug_req(0)" id="rs485.char">RS485 Character Debugging<br/>
+<input type="checkbox" onclick="debug_req(1)" id="rs485.msg">RS485 Message Debugging<br/>
+<input type="checkbox" onclick="debug_req(2)" id="http.msg">HTTP Request Debugging<br/>
+<input type="checkbox" onclick="debug_req(3)" id="http.head">HTTP Header Debugging<br/>
+<input type="checkbox" onclick="debug_req(4)" id="web.dbg">Web Server Debugging<br/>
+<hr/>
+<h2>Commands to Controller</h2>
 <button type="button" onclick="sendCommand('!A')">LEDs Off</button>
 <button type="button" onclick="sendCommand('!B')">LEDs On</button>
 <button type="button" onclick="sendCommand('!C')">LEDs Toggle</button>

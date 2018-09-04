@@ -50,7 +50,9 @@ package body rs485 is
       while not Char_IO.End_Of_File(file) loop
          Char_IO.Read(file, buff);
          activity_counter := activity_counter + 1;
---         Ada.Text_IO.Put(buff);
+         if (debug_char) then
+            Ada.Text_IO.Put(buff);
+         end if;
          case rs485_state is
             when STATE_START =>
                status := STATE_RS485_PROCESSING;
@@ -167,13 +169,13 @@ package body rs485 is
                rs485_state := STATE_START;
          end case; -- End of main state machine
          if (status = STATE_RS485_GOT_CMD) then
-            if (debug) then
+            if (debug_msg) then
                Ada.Text_IO.Put_Line("Got cmd for device " & Integer'Image(Integer(device)) &
                                       ", address " & Integer'Image(Integer(address)));
             end if;
          elsif (status = STATE_RS485_GOT_MSG) then
             data_type := message_types'Val(Integer(data_type_int));
-            if (debug) then
+            if (debug_msg) then
                Ada.Text_IO.Put_Line("Got message from device " & Integer'Image(Integer(device)) &
                                       ", address " & Integer'Image(Integer(address)));
             end if;
@@ -400,5 +402,26 @@ package body rs485 is
       end loop;
 --         Ada.Text_IO.Close(file);
    end rs485_cmd_type;
+
+   function get_debug_char return Boolean is
+   begin
+      return debug_char;
+   end;
+   --
+   function get_debug_msg return Boolean is
+   begin
+      return debug_msg;
+   end;
+   --
+   procedure set_debug_char(f : Boolean) is
+   begin
+      debug_char := f;
+   end;
+   --
+   procedure set_debug_msg(f : Boolean) is
+   begin
+      debug_msg := f;
+   end;
+   --
 
 end;

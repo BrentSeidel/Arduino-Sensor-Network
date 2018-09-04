@@ -56,10 +56,12 @@ package body web_server is
          -- available task.  In most cases, tasks should complete quickly and
          -- this should not be a big problem.
          --
-         Ada.Text_IO.Put_Line(Integer'Image(web_common.counter) & " requests serviced, " &
-                                Integer'Image(web_common.task_counter.read) &
-                                " active tasks.");
-         Ada.Text_IO.Put_Line("Using server index " & Natural'Image(handler_index));
+         if (debug) then
+            Ada.Text_IO.Put_Line(Integer'Image(web_common.counter) & " requests serviced, " &
+                                   Integer'Image(web_common.task_counter.read) &
+                                   " active tasks.");
+            Ada.Text_IO.Put_Line("Using server index " & Natural'Image(handler_index));
+         end if;
          handlers(handler_index).start(socket);
          handler_index := handler_index + 1;
          if (handler_index > num_handlers) then
@@ -229,10 +231,24 @@ package body web_server is
          internal.html_reload_config(s);
       elsif (name = "send-command") then
          internal.xml_send_command(s, p);
+      elsif (name = "debugging") then
+         internal.xml_debugging(s, p);
       else
          http.not_implemented_int(s, name);
       end if;
    end;
 
+   --
+   -- Set and get value of debug flag;
+   --
+   function get_debug return Boolean is
+   begin
+      return debug;
+   end;
+   --
+   procedure set_debug(f : Boolean) is
+   begin
+      debug := f;
+   end;
 
 end web_server;
