@@ -1,0 +1,48 @@
+%
+% Last Revision: $Rev$
+% Revision date: $Date$
+% Author: $Author$
+%
+\documentclass[10pt, openany, draft]{article}
+
+\usepackage{fancyhdr}
+\usepackage{multind}
+\usepackage{geometry}
+\geometry{letterpaper}
+%
+% Front Matter
+%
+\title{Arduino Sensor Network Documentation -- Hardware}
+\author{Brent Seidel \\ Phoenix, AZ}
+\date{ \today }
+%========================================================
+%%% BEGIN DOCUMENT
+\begin{document}
+\maketitle
+
+\section{Synopsis}
+This document contains descriptions of the hardware used in the Arduino Sensor Network.
+
+\section{Network}
+The network cabling uses CAT-5 cables due to its easy availability.  It is not quite optimum for RS-485, but works for this application.  If your application pushes the limits more, you may need another solution.  The cables are terminated with D-9 connectors.  Each node has 2 connectors so that the nodes can be daisy chained together.  The cables have mail connectors and the nodes have female connectors.
+
+The RS-485 drivers are p/n SN65HVD1781P from Texas Instruments.  Others will probably work, however it may simplify things if the same driver chip is used in all nodes.  It may also help you to get a quantity discount.
+
+\section{Nodes}
+The responder nodes are either Arduino Unos or Boarduinos (an Arduino clone from Adafruit, p/n 72).  The controller is an Arduino Mega 2560.  The listener/gateway to HTTP is a BeagleBone Black.  The responder nodes need at least a single serial port and should have an I2C port for interfacing with sensors.  Since the software is for Arduinos, it would need to be ported for any other platform.  The controller node needs at least two serial ports and possibly other interfaces if it is also to produce data.  The HTTP gateway needs a serial port and an ethernet port.  The software is written in Ada 2012 and is based on Linux.  Any platform that supports this and has the required ports will probably work.
+
+\section{Sensors}
+The responder nodes can use the discrete I/O pins and the analog input pins.  Custom code is needed to produce the data on the bus.  Software is written for three different I2C based sensors:
+\begin{itemize}
+  \item BME280 (Adafruit p/n 2652) - This sensor provides calibrated temperature, barometric pressure, and humidity.
+  \item TSL2651 (Adafruit p/n 439) - This is a digital light sensor that provides a reading of the light intensity.
+  \item CCS811 (Adafruit p/n 3566) - This sensor provides uncalibrated CO$_2$ and Volatile Organic Compound readings.
+\end{itemize}
+
+\section{3D Printed Parts}
+
+
+\section{Miscellaneous}
+
+
+\end{document}

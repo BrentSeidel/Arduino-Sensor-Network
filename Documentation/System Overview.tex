@@ -38,7 +38,7 @@ The BeagleBone Black is used as one example of a listener that presents the data
 
 \section{Protocol}
 \subsection{Physical Layer}
-The physical layer is RS-485 twisted pair.  CAT-5 cable is used because I happen to have a bunch of CAT-5 available and it works.  One pair is used leaving the other pairs available for other uses such as power distribution.
+The physical layer is RS-485 twisted pair.  CAT-5 cable is used because I happen to have a bunch of CAT-5 available and it works.  One pair is used leaving the other pairs available for other uses such as power distribution.  The baud rate is set to 115.2kbps.  This can be changed depending on the application.  The only constraint is that all nodes agree on the baud rate.
 
 \subsection{Node Organization}
 Each node is given a unique node ID.  The controller node is given ID 0.  The message format allows 32 bits for the node ID though typically small numbers would be used.  Each node can produce a number of addresses of data.  Address 0 is used to provide node information.  The information includes the number of addresses that the node can produce and the node's name.
