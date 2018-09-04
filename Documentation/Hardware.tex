@@ -24,8 +24,18 @@
 This document contains descriptions of the hardware used in the Arduino Sensor Network.
 
 \section{Network}
-The network cabling uses CAT-5 cables due to its easy availability.  It is not quite optimum for RS-485, but works for this application.  If your application pushes the limits more, you may need another solution.  The cables are terminated with D-9 connectors.  Each node has 2 connectors so that the nodes can be daisy chained together.  The cables have mail connectors and the nodes have female connectors.
+The network is based on the RS-485 standard.
 
+\subsection{Topology}
+The network uses a daisy-chained topology.  Each end of the chain should have a termination resistor of about 120$\Omega$.  One wire in the pair should have a pull up resistor to V$_{cc}$ and the other wire should have a pull down resistor to Gnd.  This is done at the controller node.
+
+\subsection{Cabling}
+The network cabling uses CAT-5 cables due to its easy availability.  It is not quite optimum for RS-485, but works for this application.  If your application pushes the limits more, you may need another solution.
+
+\subsection{Connectors}
+The cables are terminated with DE-9 connectors.  Pins 4 and 8 are used for the bus.  The other pins are avaialble.  Each node has 2 connectors so that the nodes can be daisy chained together.  The cables have male connectors and the nodes have female connectors.  Note that it might be simpler to use RJ45 connectors in your application.
+
+\subsection{Interfacing}
 The RS-485 drivers are p/n SN65HVD1781P from Texas Instruments.  Others will probably work, however it may simplify things if the same driver chip is used in all nodes.  It may also help you to get a quantity discount.
 
 \section{Nodes}
@@ -40,7 +50,7 @@ The responder nodes can use the discrete I/O pins and the analog input pins.  Cu
 \end{itemize}
 
 \section{3D Printed Parts}
-
+To be added once 3D models are added to repository.
 
 \section{Miscellaneous}
 
