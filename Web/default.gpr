@@ -1,5 +1,3 @@
-with "../../BBS-Ada/bbs.gpr";
-with "../../BBS-BBB-Ada/bbs_embed.gpr";
 
 project Default is
 

@@ -38,11 +38,15 @@ The cables are terminated with DE-9 connectors.  Pins 4 and 8 are used for the b
 \subsection{Interfacing}
 The RS-485 drivers are p/n SN65HVD1781P from Texas Instruments.  Others will probably work, however it may simplify things if the same driver chip is used in all nodes.  It may also help you to get a quantity discount.
 
+\subsection{Baud Rate}
+Since there is not a lot of data to transfer, a high baud rate is not necessary.  A higher data rate will put more of a processing load on the nodes and leave less time for them to process their data.  This is a bigger factor for the basic Arduinos.  My application uses 115.2kbps and it seems to work.  An oscilloscope shows that the waveform isn't too distorted.  It also don't put too heavy of a load on the nodes for this particular application.  If more processing is needed in the nodes, a lower baud rate may be needed.
+
 \section{Nodes}
 The responder nodes are either Arduino Unos or Boarduinos (an Arduino clone from Adafruit, p/n 72).  The controller is an Arduino Mega 2560.  The listener/gateway to HTTP is a BeagleBone Black.  The responder nodes need at least a single serial port and should have an I2C port for interfacing with sensors.  Since the software is for Arduinos, it would need to be ported for any other platform.  The controller node needs at least two serial ports and possibly other interfaces if it is also to produce data.  The HTTP gateway needs a serial port and an ethernet port.  The software is written in Ada 2012 and is based on Linux.  Any platform that supports this and has the required ports will probably work.
 
 \section{Sensors}
 The responder nodes can use the discrete I/O pins and the analog input pins.  Custom code is needed to produce the data on the bus.  Software is written for three different I2C based sensors:
+
 \begin{itemize}
   \item BME280 (Adafruit p/n 2652) - This sensor provides calibrated temperature, barometric pressure, and humidity.
   \item TSL2651 (Adafruit p/n 439) - This is a digital light sensor that provides a reading of the light intensity.

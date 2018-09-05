@@ -89,10 +89,16 @@ extern int buffer_ptr;
 //
 // Defined message types
 //
-const int MSG_TYPE_UNKNOWN = 0; // Undefined or not present.
-const int MSG_TYPE_EMPTY = 1; // Everything is OK, but no data to send
-const int MSG_TYPE_NAK = 2; // Address not supported
-const int MSG_TYPE_INFO = 3; // Address 0 information message
+const int MSG_TYPE_UNKNOWN  =  0; // Undefined or not present.
+const int MSG_TYPE_EMPTY    =  1; // Everything is OK, but no data to send
+const int MSG_TYPE_NAK      =  2; // Address not supported
+const int MSG_TYPE_INFO     =  3; // Address 0 information message
+const int MSG_TYPE_BME280   =  4; // Data from BME280 sensor
+const int MSG_TYPE_DISCRETE =  5; // Discrete data
+const int MSG_TYPE_ANALOG   =  6; // Analog data
+const int MSG_TYPE_VERSION  =  7; // Software identification
+const int MSG_TYPE_CCS811   =  8; // Data from CCS811 sensor
+const int MSG_TYPE_TSL2561  =  9; // Data from TSL2561 sensor
 //
 // Status codes for data
 //
