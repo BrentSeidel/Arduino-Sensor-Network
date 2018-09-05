@@ -8,6 +8,7 @@
 \usepackage{fancyhdr}
 \usepackage{multind}
 \usepackage{geometry}
+%\usepackage{tabular}
 \geometry{letterpaper}
 %
 % Front Matter
@@ -132,17 +133,6 @@ All of the numbers are 32 bit unsigned integers expressed in hexadecimal, with l
 %#5/1/4&0&0&1C2BE&174BFBE&BE6D%FF
 %@6/1%FF
 %#6/1/4&0&0&1F620&175D6F0&BD18%FF
-%type message_types
-% 0 MSG_TYPE_UNKNOWN
-% 1 MSG_TYPE_EMPTY
-% 2 MSG_TYPE_NAK
-% 3 MSG_TYPE_INFO
-% 4 MSG_TYPE_BME280
-% 5 MSG_TYPE_DISCRETE
-% 6 MSG_TYPE_ANALOG
-% 7 MSG_TYPE_VERSION
-% 8 MSG_TYPE_CCS811
-% 9 MSG_TYPE_TSL2561);
 
 \subsubsection{Requests}
 Requests should only be sent by the controller node.  The first character in a request message is an ampersand, `\texttt{\@}'.  This is followed by the device ID in hex, followed by a forward slash, `\texttt{/}'.  Then the address in hex, followed by a percent sign, `\texttt{\%}'.  This is followed by a currently unused checksum in hex.  The message is terminated by a CR-LF.
@@ -155,5 +145,42 @@ Responses are sent in response to a request from the controller node.  The first
 The format of the responses flexible and the number of data words sent depends on the type of message.  It may even vary between messages of the same type.  A typical response looks something like \texttt{\#2/1/4\&0\&0\&1E690\&175C0F1\&C775\%FF}.  This is a response from device ID 2, address 1 with message type 4 (\texttt{MSG\_TYPE\_BME280})
 
 If the controller has data to send, it can send a response message without sending a request.
+
+\subsubsection{Message Types}
+To make the response messages easier to decode, each message has a message type field.  This indicates what to do with the rest of the data in the message.  Not all messages are currently implemented and more will likely be added.  The various message types are in Table \ref{tab:messagetype}.  Some of the message types have a subtype.  In particular, discretes have some defined type as shown in Table \ref{tab:disctype}.  When analogs get defined, there will be subtypes to indicate what the analog values represent.
+
+\begin{table}
+  \centering
+  \begin{tabular}{c l l}
+    \hline
+    Value & Symbol & Meaning \\
+    \hline
+    0 & \texttt{MSG\_TYPE\_UNKNOWN} & Undefined or not present.\\
+    1 & \texttt{MSG\_TYPE\_EMPTY} & Everything is OK, but no data to send \\
+    2 & \texttt{MSG\_TYPE\_NAK} & Address not supported \\
+    3 & \texttt{MSG\_TYPE\_INFO} & Address 0 information message \\
+    4 & \texttt{MSG\_TYPE\_BME280} & BME280 sensor values \\
+    5 & \texttt{MSG\_TYPE\_DISCRETE} & Discretes \\
+    6 & \texttt{MSG\_TYPE\_ANALOG} & Analog values (not yet implemented) \\
+    7 & \texttt{MSG\_TYPE\_VERSION} & Version/Software ID (not yet implemented) \\
+    8 & \texttt{MSG\_TYPE\_CCS811} & CCS811 sensor values \\
+    9 & \texttt{MSG\_TYPE\_TSL2561} & TSL2651 sensor values \\
+  \end{tabular}
+  \caption{Defined Message Types}
+  \label{tab:messagetype}
+\end{table}
+
+\begin{table}
+  \centering
+  \begin{tabular}{c l l}
+    \hline
+    Value & Symbol & Meaning \\
+    \hline
+    0 & \texttt{DISCRETE\_UNKNOWN} & Unknown discretes.\\
+    1 & \texttt{DISCRETE\_CMD} & Command discretes \\
+  \end{tabular}
+  \caption{Defined Discrete Types}
+  \label{tab:disctype}
+\end{table}
 
 \end{document}
