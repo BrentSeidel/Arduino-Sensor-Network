@@ -21,9 +21,11 @@ function displayCounter(xml)
   var xmlDoc = xml.responseXML;
   var count = xmlDoc.getElementsByTagName("counter")[0].childNodes[0].nodeValue;
   var tasks = xmlDoc.getElementsByTagName("tasks")[0].childNodes[0].nodeValue;
+  var activity = xmlDoc.getElementsByTagName("rs485")[0].childNodes[0].nodeValue;
+  var text = count + " requests serviced<br/>" + tasks + " current active tasks" +
+             "<br/>RS-485 Activity counter " + activity;
 
-  document.getElementById("count").innerHTML = count + " requests serviced<br>" +
-                                               tasks + " current active tasks";
+  document.getElementById("count").innerHTML = text;
 }
 //
 // AJAX call to send a command passed as a string

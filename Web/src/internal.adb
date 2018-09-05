@@ -15,14 +15,18 @@ with web_server;
 package body internal is
 
    --
-   -- Return the count of transactions as an xml message
+   -- Return various counters as an xml message.  The counters returned include:
+   -- HTTP Transaction count
+   -- Active HTTP tasks
+   -- RS-485 Activity Counter
    --
    procedure xml_count(s : GNAT.Sockets.Stream_Access) is
    begin
       http.ok(s, "application/xml");
       String'Write(s, "<xml><counter>" & Integer'Image(web_common.counter) &
                      "</counter><tasks>" & Integer'Image(web_common.task_counter.read) &
-                     "</tasks></xml>" & CRLF);
+                     "</tasks><rs485>" & Integer'Image(Integer(rs485.activity_counter)) &
+                     "</rs485></xml>" & CRLF);
    end;
 
    --
