@@ -27,11 +27,8 @@ __SAM3X8E__ AT91SAM3X8E Arduino Due
 #include <HardwareSerial.h>
 #include <wiring_private.h>
 //
-// Define a node name type.
-//
-//typedef char[32] node_name;
-//
-// The serial port definitions are a bit different between the AVR and SAM based Arduinos.
+// The serial port definitions are a bit different between the AVR and
+// SAM based Arduinos.
 //
 #if defined __SAM3X8E__
 #define SERIAL0_TX_COMPLETE (REG_UART_SR & UART_SR_TXEMPTY)
@@ -60,12 +57,16 @@ __SAM3X8E__ AT91SAM3X8E Arduino Due
 //
 #define BAUD_RATE 115200
 //
+// Controller node ID
+//
+#define CTRL_NODE 0
+//
 // Error codes for state machine
 //
-const int STATE_ERROR_NONE = 0; // no error
-const int STATE_ERROR_RESTART = 1; // Start of record found while processing record
-const int STATE_ERROR_END = 2; // Premature end of record found
-const int STATE_ERROR_UNEXPECTED = 3; // Other unexpected character found during processing
+const uint8_t STATE_ERROR_NONE = 0; // no error
+const uint8_t STATE_ERROR_RESTART = 1; // Start of record found while processing record
+const uint8_t STATE_ERROR_END = 2; // Premature end of record found
+const uint8_t STATE_ERROR_UNEXPECTED = 3; // Other unexpected character found during processing
 //
 // RS-485 state machine return values
 //
@@ -76,41 +77,77 @@ const uint8_t STATE_RS485_GOT_MSG = 2; // End of message reached
 // Data from bus
 //
 #define NUM_NODES 32
-extern unsigned int device;
-extern unsigned int address;
-extern unsigned int data_type;
-extern unsigned long ages[NUM_NODES];
+extern uint32_t device;
+extern uint32_t address;
+extern uint32_t data_type;
+extern uint32_t ages[NUM_NODES];
 //
 // RS-485 data buffer
 //
 #define BUFFER_SIZE 32
 extern uint32_t data_buffer[BUFFER_SIZE];
-extern int buffer_ptr;
+extern uint8_t buffer_ptr;
 //
 // Defined message types
 //
-const int MSG_TYPE_UNKNOWN  =  0; // Undefined or not present.
-const int MSG_TYPE_EMPTY    =  1; // Everything is OK, but no data to send
-const int MSG_TYPE_NAK      =  2; // Address not supported
-const int MSG_TYPE_INFO     =  3; // Address 0 information message
-const int MSG_TYPE_BME280   =  4; // Data from BME280 sensor
-const int MSG_TYPE_DISCRETE =  5; // Discrete data
-const int MSG_TYPE_ANALOG   =  6; // Analog data
-const int MSG_TYPE_VERSION  =  7; // Software identification
-const int MSG_TYPE_CCS811   =  8; // Data from CCS811 sensor
-const int MSG_TYPE_TSL2561  =  9; // Data from TSL2561 sensor
+const uint32_t MSG_TYPE_UNKNOWN = 0; // Undefined or not present.
+const uint32_t MSG_TYPE_EMPTY = 1; // Everything is OK, but no data to send
+const uint32_t MSG_TYPE_NAK = 2; // Address not supported
+const uint32_t MSG_TYPE_INFO = 3; // Address 0 information message
+const uint32_t MSG_TYPE_BME280 = 4; // BME280 sensor values
+const uint32_t MSG_TYPE_DISCRETE = 5; // Discretes
+const uint32_t MSG_TYPE_ANALOG = 6; // Analog values
+const uint32_t MSG_TYPE_VERSION = 7; // Version/Software ID
+const uint32_t MSG_TYPE_CCS811 = 8; // CCS811 sensor values
+const uint32_t MSG_TYPE_TSL2561 = 9; // TSL2651 sensor values
+//
+const uint32_t DISCRETE_UNKNOWN = 0; // Unknown discrete type
+const uint32_t DISCRETE_CMD = 1; // Command discretes from controller
+const uint32_t DISC_CMD_LED = 0x00000001; // Turn LED on
+const uint32_t DISC_CMD_1  = 0x00000002;
+const uint32_t DISC_CMD_2  = 0x00000004;
+const uint32_t DISC_CMD_3  = 0x00000008;
+const uint32_t DISC_CMD_4  = 0x00000010;
+const uint32_t DISC_CMD_5  = 0x00000020;
+const uint32_t DISC_CMD_6  = 0x00000040;
+const uint32_t DISC_CMD_7  = 0x00000080;
+const uint32_t DISC_CMD_8  = 0x00000100;
+const uint32_t DISC_CMD_9  = 0x00000200;
+const uint32_t DISC_CMD_10 = 0x00000400;
+const uint32_t DISC_CMD_11 = 0x00000800;
+const uint32_t DISC_CMD_12 = 0x00001000;
+const uint32_t DISC_CMD_13 = 0x00002000;
+const uint32_t DISC_CMD_14 = 0x00004000;
+const uint32_t DISC_CMD_15 = 0x00008000;
+const uint32_t DISC_CMD_16 = 0x00010000;
+const uint32_t DISC_CMD_17 = 0x00020000;
+const uint32_t DISC_CMD_18 = 0x00040000;
+const uint32_t DISC_CMD_19 = 0x00080000;
+const uint32_t DISC_CMD_20 = 0x00100000;
+const uint32_t DISC_CMD_21 = 0x00200000;
+const uint32_t DISC_CMD_22 = 0x00400000;
+const uint32_t DISC_CMD_23 = 0x00800000;
+const uint32_t DISC_CMD_24 = 0x01000000;
+const uint32_t DISC_CMD_25 = 0x02000000;
+const uint32_t DISC_CMD_26 = 0x04000000;
+const uint32_t DISC_CMD_27 = 0x08000000;
+const uint32_t DISC_CMD_28 = 0x10000000;
+const uint32_t DISC_CMD_29 = 0x20000000;
+const uint32_t DISC_CMD_30 = 0x40000000;
+const uint32_t DISC_CMD_31 = 0x80000000;
+
 //
 // Status codes for data
 //
-const int DATA_VALID = 0; // Data is fresh and valid
-const int DATA_STALE = 1; // No new data since last trasnmission
-const int DATA_INIT = 2;  // Data not ready due to initialization
-const int DATA_SENSOR = 3; // Sensor failure
-const int DATA_NO_COMPUTED = 4; // Data not computed due to invalid inputs
+const uint8_t DATA_VALID = 0; // Data is fresh and valid
+const uint8_t DATA_STALE = 1; // No new data since last trasnmission
+const uint8_t DATA_INIT = 2;  // Data not ready due to initialization
+const uint8_t DATA_SENSOR = 3; // Sensor failure
+const uint8_t DATA_NO_COMPUTED = 4; // Data not computed due to invalid inputs
 //
 // Conversion functions
 //
-extern unsigned int hex_to_int(char c);
+extern uint8_t hex_to_int(char c);
 extern uint32_t str_to_uint(const char* c);
 //
 // State machine function
@@ -119,8 +156,10 @@ extern uint8_t rs485_state_machine(HardwareSerial *rs485, HardwareSerial *dbg_po
 //
 // Functions for predefined messages
 //
-extern void rs485_msg_unknown(HardwareSerial *rs485, unsigned int device, unsigned int address);
-extern void rs485_msg_empty(HardwareSerial *rs485, unsigned int device, unsigned int address);
-extern void rs485_msg_nak(HardwareSerial *rs485, unsigned int device, unsigned int address);
-void rs485_msg_info(HardwareSerial *rs485, unsigned int device, unsigned int address,
-	unsigned int num_addr, const char *name);
+extern void rs485_msg_unknown(HardwareSerial *rs485, uint32_t device, uint32_t address);
+extern void rs485_msg_empty(HardwareSerial *rs485, uint32_t device, uint32_t address);
+extern void rs485_msg_nak(HardwareSerial *rs485, uint32_t device, uint32_t address);
+extern void rs485_msg_info(HardwareSerial *rs485, uint32_t device, uint32_t address,
+	uint32_t num_addr, const char *name);
+extern void rs485_msg_disc(HardwareSerial *rs485, uint32_t device, uint32_t address,
+	uint32_t disc_type, uint32_t disc_value);
