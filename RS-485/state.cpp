@@ -18,15 +18,15 @@ uint8_t rs485_state = STATE_START;
 //
 // Data from bus
 //
-unsigned int device;
-unsigned int address;
-unsigned int data_type;
-unsigned long ages[NUM_NODES] = {0, 0, 0, 0, 0, 0, 0};
+uint32_t device;
+uint32_t address;
+uint32_t data_type;
+uint32_t ages[NUM_NODES] = {0, 0, 0, 0, 0, 0, 0};
 //
 // RS-485 data buffer
 //
 uint32_t data_buffer[BUFFER_SIZE];
-int buffer_ptr = 0;
+uint8_t buffer_ptr = 0;
 //
 // For some reason, this doesn't seem to get defined.
 //
@@ -119,7 +119,7 @@ void state_get_address(int data, uint8_t *state)
               // next field is data.
       if (*state == STATE_GET_MSG_ADDR)
       {
-        *state = STATE_BUFFER_ENTRY;
+        *state = STATE_START_BUFFER;
       }
       else
       {
@@ -185,7 +185,7 @@ void state_get_type(int data, uint8_t *state)
     case 0: // No data
       break;
     case '&': // Message type is followed by an ampersand if there is data
-      *state = STATE_BUFFER_ENTRY;
+      *state = STATE_START_BUFFER;
       break;
     case '%': // Message type is followed by an percent if there is no data
       *state = STATE_BUFFER_END;
@@ -233,7 +233,7 @@ void state_get_type(int data, uint8_t *state)
   }
 }
 //
-void state_process_data(int data, uint8_t *state)
+void state_process_data(char data, uint8_t *state)
 {
   switch (data)
   {
@@ -309,12 +309,13 @@ uint8_t rs485_state_machine(HardwareSerial *rs485, HardwareSerial *dbg_port, boo
   uint8_t status = STATE_RS485_PROCESSING;
 
   data = rs485->read();
+  if (data <= 0)
+  {
+	  return status;
+  }
   if (debug)
   {
-    if (data > 0)
-    {
       dbg_port->write(data);
-    }
   }
   switch (rs485_state)
   {
@@ -347,9 +348,9 @@ uint8_t rs485_state_machine(HardwareSerial *rs485, HardwareSerial *dbg_port, boo
       }
       buffer_ptr = 0;
       rs485_state = STATE_BUFFER_ENTRY;
-      break;
+//      break; // Yes, we do intend to fall through to the next state here.
     case STATE_BUFFER_ENTRY:
-      state_process_data(data, & rs485_state);
+      state_process_data((char) data, & rs485_state);
       break;
     case STATE_BUFFER_END:
       ages[device] = millis();
@@ -360,10 +361,6 @@ uint8_t rs485_state_machine(HardwareSerial *rs485, HardwareSerial *dbg_port, boo
       if (rs485_state == STATE_START)
       {
         status = STATE_RS485_GOT_MSG;
-        if (debug)
-        {
-          dbg_port->println("Got message");
-        }
       }
       break;
     case STATE_GET_CMD_DEV:
@@ -378,10 +375,6 @@ uint8_t rs485_state_machine(HardwareSerial *rs485, HardwareSerial *dbg_port, boo
       if (rs485_state == STATE_START)
       {
         status = STATE_RS485_GOT_CMD;
-        if (debug)
-        {
-          dbg_port->println("Got command");
-        }
       }
       break;
     default: // Should never get here.  If we do, restart the state machine.

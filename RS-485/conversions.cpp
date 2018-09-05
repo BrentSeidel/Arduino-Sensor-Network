@@ -3,7 +3,7 @@
 // Converts a single hex character to an interger value.  Digits 'A' through 'F" can
 // be either upper case or lower case.  Unrecognized digits will return -1.
 //
-unsigned int hex_to_int(char c)
+uint8_t hex_to_int(char c)
 {
   if ((c >= '0') && (c <= '9'))
   {
