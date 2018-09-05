@@ -178,7 +178,8 @@ function dispDevData(xml)
     document.getElementById("DevData").innerHTML = text;
 }
 //
-// Send request for debugging
+// Send request for debugging.  This can also be called with no parameters to
+// just return the status of the debug flags.
 //
 function debug_req(index)
 {
@@ -217,68 +218,29 @@ function debug_resp(xml)
   var xmlDoc = xml.responseXML;
   var item;
 
-  item = xmlDoc.getElementsByTagName("rs485.char");
+  check_state(xmlDoc, "rs485.char");
+  check_state(xmlDoc, "rs485.msg");
+  check_state(xmlDoc, "http.msg");
+  check_state(xmlDoc, "http.head");
+  check_state(xmlDoc, "web.dbg");
+}
+//
+// Helper function to update checkbox state
+//
+function check_state(xml, name)
+{
+  var item = xml.getElementsByTagName(name);
+
   if (item.length > 0)
   {
     if (item[0].childNodes[0].nodeValue == "TRUE")
     {
-      console.log("Setting rs485.char to true.");
-      document.getElementById("rs485.char").checked = true;
+      document.getElementById(name).checked = true;
     }
     else
     {
-      console.log("Setting rs485.char to false.");
-      document.getElementById("rs485.char").checked = false;
-    }
-  }
-  item = xmlDoc.getElementsByTagName("rs485.msg");
-  if (item.length > 0)
-  {
-    if (item[0].childNodes[0].nodeValue == "TRUE")
-    {
-      document.getElementById("rs485.msg").checked = true;
-    }
-    else
-    {
-      document.getElementById("rs485.msg").checked = false;
-    }
-  }
-  item = xmlDoc.getElementsByTagName("http.msg");
-  if (item.length > 0)
-  {
-    if (item[0].childNodes[0].nodeValue == "TRUE")
-    {
-      document.getElementById("http.msg").checked = true;
-    }
-    else
-    {
-      document.getElementById("http.msg").checked = false;
-    }
-  }
-  item = xmlDoc.getElementsByTagName("http.head");
-  if (item.length > 0)
-  {
-    if (item[0].childNodes[0].nodeValue == "TRUE")
-    {
-      document.getElementById("http.head").checked = true;
-    }
-    else
-    {
-      document.getElementById("http.head").checked = false;
-    }
-  }
-  item = xmlDoc.getElementsByTagName("web.dbg");
-  if (item.length > 0)
-  {
-    if (item[0].childNodes[0].nodeValue == "TRUE")
-    {
-      document.getElementById("web.dbg").checked = true;
-    }
-    else
-    {
-      document.getElementById("web.dbg").checked = false;
+      document.getElementById(name).checked = false;
     }
   }
 }
-
 
