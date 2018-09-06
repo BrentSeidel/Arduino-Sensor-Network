@@ -142,12 +142,12 @@ A typical request looks something like, `\texttt{@00000001/00000000\%FF}'.  This
 \subsubsection{Responses}
 Responses are sent in response to a request from the controller node.  The first character in a response message is an octathorpe, `\texttt{\#}'.  This is followed by the device ID in hex, the address in hex, and the message type in hex, separated by a forward slash, `\texttt{/}', and ended by an ampersand, `\texttt{\&}'.  This is followed by the data fields.  These are up to 32 32-bit hex numbers separated by apmersands, `\texttt{\&}' and terminated by a percent sign, `\texttt{\%}'.  This is followed by a currently unused checksum in hex.  The message is terminated by a CR-LF.
 
-The format of the responses flexible and the number of data words sent depends on the type of message.  It may even vary between messages of the same type.  A typical response looks something like \texttt{\#2/1/4\&0\&0\&1E690\&175C0F1\&C775\%FF}.  This is a response from device ID 2, address 1 with message type 4 (\texttt{MSG\_TYPE\_BME280})
+The format of the responses flexible and the number of data fields sent depends on the type of message.  It may even vary between messages of the same type.  A typical response looks something like \texttt{\#2/1/4\&0\&0\&1E690\&175C0F1\&C775\%FF}.  This is a response from device ID 2, address 1 with message type 4 (\texttt{MSG\_TYPE\_BME280})
 
-If the controller has data to send, it can send a response message without sending a request.
+If the controller has data to send, it can send a response message without sending a request, as the request can be considered to be implied.
 
 \subsubsection{Message Types}
-To make the response messages easier to decode, each message has a message type field.  This indicates what to do with the rest of the data in the message.  Not all messages are currently implemented and more will likely be added.  The various message types are in Table \ref{tab:messagetype}.  Some of the message types have a subtype.  In particular, discretes have some defined type as shown in Table \ref{tab:disctype}.  When analogs get defined, there will be subtypes to indicate what the analog values represent.
+To make the response messages easier to decode, each message has a message type field.  This indicates what to do with the rest of the data in the message.  Not all messages are currently implemented and more will likely be added.  The various message types are in Table \ref{tab:messagetype}.  Some of the message types have a subtype.  In particular, discretes have the defined types as shown in Table \ref{tab:disctype}, with more likely to be added.  When analogs get defined, there will be subtypes to indicate what the analog values represent.
 
 \begin{table}
   \centering
