@@ -1,5 +1,13 @@
 //
-// Requests a value from the server using AJAX.
+// Call this routine when the page is finished loading.
+//
+function page_loaded()
+{
+  debug_req(-1);
+  loadCounter();
+}
+//
+// Requests counter values from the server using AJAX.
 //
 function loadCounter()
 {

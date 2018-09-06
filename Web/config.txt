@@ -25,7 +25,7 @@
 #
 # JavaScript
 #
-/JSTest test1.js application/javascript
+/SetJS settings.js application/javascript
 /DashJS dashboard.js application/javascript
 #
 # Images

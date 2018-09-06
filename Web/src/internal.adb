@@ -86,6 +86,7 @@ package body internal is
       String'Write(s, "<h1>Reload Request</h1>");
       String'Write(s, "<p>Configuration file reload request submitted.</p>" & CRLF);
       html.html_end(s, "footer.html");
+      web_common.reload_configuration := True;
    end;
 
    --
