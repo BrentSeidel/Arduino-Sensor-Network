@@ -11,6 +11,29 @@ devices on the RS-485 network.</p>
 <input type="radio" name="measurement" value="metric" checked onclick="setMetric(1)">Metric</input>
 <input type="radio" name="measurement" value="imperial" onclick="setMetric(0)">Imperial</input>
 <div id="DevData"></div>
+<div id="Discretes"></div>
+<div id="BME280" style="display: none">
+  <table><tr><th>Temperature</th><th>Pressure</th><th>Humidity</th></tr>
+    <tr><td id="BME280-tempG" class="container"></td>
+    <td id="BME280-pressG" class="container"></td>
+    <td id="BME280-humG" class="container"></td></tr>
+    <tr><td id="BME280-tempT" class="container"></td>
+    <td id="BME280-pressT" class="container"></td>
+    <td id="BME280-humT" class="container"></td></tr>
+  </table>
+</div>
+<div id="CCS811" style="display: none">
+  <table><tr><th>CO<sub>2</sub></th><th>TVOC</th></tr>
+    <tr><td id="CCS811-CO2"></td><td id="CCS811-TVOC"></td></tr>
+  </table>
+</div>
+<div id="TSL2561" style="display: none">
+  <table><tr><th>Data 0</th><th>Data 1</th><th>Lux</th></tr>
+    <tr><td id="TSL2561-Data0"></td>
+    <td id="TSL2561-Data1"></td>
+    <td id="TSL2561-Lux"></td></tr>
+  </table>
+</div>
 <hr/>
 <p>Go <a href="/">back</a> to the main page.</p>
 </body></html>

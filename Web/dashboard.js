@@ -190,7 +190,12 @@ function dispDevData(xml)
   temp = xmlDoc.getElementsByTagName("bme280");
   if (temp.length > 0)
   {
-    text += add_BME280(temp[0].childNodes);
+    add_BME280(temp[0].childNodes);
+    document.getElementById("BME280").style.display = "block";
+  }
+  else
+  {
+    document.getElementById("BME280").style.display = "none";
   }
   //
   // CCS811
@@ -198,7 +203,12 @@ function dispDevData(xml)
   temp = xmlDoc.getElementsByTagName("ccs811");
   if (temp.length > 0)
   {
-    text += add_CCS811(temp[0].childNodes);
+    add_CCS811(temp[0].childNodes);
+    document.getElementById("CCS811").style.display = "block";
+  }
+  else
+  {
+    document.getElementById("CCS811").style.display = "none";
   }
   //
   // TSL2561
@@ -206,7 +216,12 @@ function dispDevData(xml)
   temp = xmlDoc.getElementsByTagName("tsl2561");
   if (temp.length > 0)
   {
-    text += add_TSL2561(temp[0].childNodes);
+    add_TSL2561(temp[0].childNodes);
+    document.getElementById("TSL2561").style.display = "block";
+  }
+  else
+  {
+    document.getElementById("TSL2561").style.display = "none";
   }
   document.getElementById("DevData").innerHTML = text;
 }
@@ -215,7 +230,6 @@ function add_BME280(nodeList)
 {
   var x;
   var node;
-  var text = "<table><tr><th>Temperature</th><th>Pressure</th><th>Humidity</th></tr>";
   var temp_c;
   var pressure;
   var humidity;
@@ -257,53 +271,55 @@ function add_BME280(nodeList)
     }
     if (unitMetric == 1)
     {
-      text += "<tr><td class=\"" + td_class + "\"><img src=\"/Thermometer?min=0&max=100&value=" +
-              Math.round(temp_c) + "\"></img></td>";
-      text += "<td class=\"" + td_class + "\"><img src=\"/Thermometer?min=90000&max=100000&value=" +
-              Math.round(pressure) + "\"></img></td>";
-      text += "<td class=\"" + td_class + "\"><img src=\"/Dial?min=0&max=100&value=" + Math.round(humidity) +
-             "\"></img></td></tr>";
-      text += "<tr><td class=\"" + td_class + "\">" + temp_c.toFixed(1) + "&deg;C</td>";
-      text += "<td class=\"" + td_class + "\">" + Math.round(pressure) + "Pa</td>";
+      document.getElementById("BME280-tempG").innerHTML = "<img src=\"/Thermometer?min=0&max=100&value=" +
+              Math.round(temp_c) + "\"></img>";
+      document.getElementById("BME280-pressG").innerHTML = "<img src=\"/Thermometer?min=90000&max=100000&value=" +
+              Math.round(pressure) + "\"></img>";
+      document.getElementById("BME280-tempT").innerHTML = temp_c.toFixed(1) + "&deg;C";
+      document.getElementById("BME280-pressT").innerHTML = Math.round(pressure) + "Pa";
     }
     else
     {
       temp_f = (temp_c*9/5) + 32;
       pressure = pressure/3386.39;
-      text += "<tr><td class=\"" + td_class + "\"><img src=\"/Thermometer?min=50&max=150&value=" +
-              Math.round(temp_f) + "\"></img></td>";
-      text += "<td class=\"" + td_class + "\"><img src=\"/Thermometer?min=2500&max=3500&value=" +
-              Math.round(pressure*100.0) + "\"></img></td>";
-      text += "<td class=\"" + td_class + "\"><img src=\"/Dial?min=0&max=100&value=" + Math.round(humidity) +
-             "\"></img></td></tr>";
-      text += "<tr><td class=\"" + td_class + "\">" + temp_f.toFixed(1) + "&deg;F</td>";
-      text += "<td class=\"" + td_class + "\">" + pressure.toFixed(2) + "inHg</td>";
+      document.getElementById("BME280-tempG").innerHTML = "<img src=\"/Thermometer?min=50&max=150&value=" +
+              Math.round(temp_f) + "\"></img>";
+      document.getElementById("BME280-pressG").innerHTML = "<img src=\"/Thermometer?min=2500&max=3500&value=" +
+              Math.round(pressure*100.0) + "\"></img>";
+      document.getElementById("BME280-tempT").innerHTML = temp_f.toFixed(1) + "&deg;F";
+      document.getElementById("BME280-pressT").innerHTML = pressure.toFixed(2) + "inHg";
     }
-    text += "<td class=\"" + td_class + "\">" + humidity.toFixed(1) + "%</td></tr>";
+    document.getElementById("BME280-humG").innerHTML = "<img src=\"/Dial?min=0&max=100&value=" +
+            Math.round(humidity) + "\"></img>";
+    document.getElementById("BME280-humT").innerHTML = humidity.toFixed(1) + "%";
   }
   else
   {
     td_class += " error";
-    text += "<tr><td class=\"" + td_class + "\"><img src=\"/Thermometer?min=hello\"></img></td>";
-    text += "<td class=\"" + td_class + "\"><img src=\"/Thermometer?min=hello\"></img></td>";
-    text += "<td class=\"" + td_class + "\"><img src=\"/Dial?min=hello\"></img></td></tr>";
-    text += "<tr><td class=\"" + td_class + "\">" + validity + "&deg;F</td>";
-    text += "<td class=\"" + td_class + "\">" + validity + "inHg</td>";
-    text += "<td class=\"" + td_class + "\">" + validity + "%</td></tr>";
+    document.getElementById("BME280-tempG").innerHTML = "<img src=\"/Thermometer?min=hello\"></img>";
+    document.getElementById("BME280-pressG").innerHTML = "<img src=\"/Thermometer?min=hello\"></img>";
+    document.getElementById("BME280-humG").innerHTML = "<img src=\"/Dial?min=hello\"></img>";
+    document.getElementById("BME280-tempT").innerHTML = validity + "&deg;F";
+    document.getElementById("BME280-pressT").innerHTML = validity + "inHg";
+    document.getElementById("BME280-humT").innerHTML = validity + "%";
   }
-  text += "</table>";
-  return text;
+  document.getElementById("BME280-tempG").className = td_class;
+  document.getElementById("BME280-pressG").className = td_class;
+  document.getElementById("BME280-humG").className = td_class;
+  document.getElementById("BME280-tempT").className = td_class;
+  document.getElementById("BME280-pressT").className = td_class;
+  document.getElementById("BME280-humT").className = td_class;
 }
 
 function add_CCS811(nodeList)
 {
   var x;
   var node;
-  var text = "<table><tr><th>CO<sub>2</sub></th><th>TVOC</th></tr>";
   var val_eco2;
   var val_tvoc;
   var validity;
   var age;
+  var td_class;
 
   //
   // Yes, this is a "for-case" type structure.  It's done this way because it's
@@ -330,33 +346,38 @@ function add_CCS811(nodeList)
   }
   if (validity = "DATA_VALID")
   {
-    if (age < 10)
+    if (age >= 10)
     {
-      text += "<tr><td>" + val_eco2 + "</td><td>" + val_tvoc;
+      td_class = "stale";
     }
     else
     {
-      text += "<tr><td class=\"stale\">" + val_eco2 + "</td><td class=\"stale\">" + val_tvoc;
+      td_class = "ok";
     }
+    document.getElementById("CCS811-CO2").innerHTML = val_eco2;
+    document.getElementById("CCS811-TVOC").innerHTML = val_tvoc;
   }
   else
   {
-    text += "<tr><td class=\"error\">" + validity + "</td><td class=\"error\">" + validity;
+    td_class = "error";
+    document.getElementById("CCS811-CO2").innerHTML = validity;
+    document.getElementById("CCS811-TVOC").innerHTML = validity;
   }
-  text += "</td></tr></table>";
-  return text;
+  document.getElementById("CCS811-CO2").className = td_class;
+  document.getElementById("CCS811-TVOC").className = td_class;
+  return;
 }
 
 function add_TSL2561(nodeList)
 {
   var x;
   var node;
-  var text = "<table><tr><th>Data 0</th><th>Data 1</th><th>Lux</th></tr>";
   var val_data0;
   var val_data1;
   var val_lux;
   var validity;
   var age;
+  var td_class;
 
   //
   // Yes, this is a "for-case" type structure.  It's done this way because it's
@@ -386,21 +407,27 @@ function add_TSL2561(nodeList)
   }
   if (validity = "DATA_VALID")
   {
-    if (age < 10)
+    if (age >= 10)
     {
-      text += "<tr><td>" + val_data0 + "</td><td>" + val_data1 + "</td><td>" + val_lux;
+      td_class = "stale";
     }
     else
     {
-      text += "<tr><td class=\"stale\">" + val_data0 + "</td><td class=\"stale\">" +
-              val_data1 + "</td><td class=\"stale\">" + val_lux;
+      td_class = "ok";
     }
+    document.getElementById("TSL2561-Data0").innerHTML = val_data0;
+    document.getElementById("TSL2561-Data1").innerHTML = val_data1;
+    document.getElementById("TSL2561-Lux").innerHTML = val_lux;
   }
   else
   {
-    text += "<tr><td class=\"error\">" + validity + "</td><td class=\"error\">" +
-            validity + "</td><td class=\"error\">" + validity;
+    td_class = "error";
+    document.getElementById("TSL2561-Data0").innerHTML = validity;
+    document.getElementById("TSL2561-Data1").innerHTML = validity;
+    document.getElementById("TSL2561-Lux").innerHTML = validity;
   }
-    text += "</td></tr></table>";
-  return text;
+  document.getElementById("TSL2561-Data0").className = td_class;
+  document.getElementById("TSL2561-Data1").className = td_class;
+  document.getElementById("TSL2561-Lux").className = td_class;
+  return;
 }
