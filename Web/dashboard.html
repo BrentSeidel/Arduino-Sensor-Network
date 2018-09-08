@@ -4,12 +4,15 @@
 </head>
 <body onload="startReload()">
 <script src="DashJS"></script>
+<h1>Dashboard Page</h1>
 <p>This is the dashboard page that allows one to view information from the various
 devices on the RS-485 network.</p>
+<h2>Devices on Network</h2>
 <div id="devices"></div>
 <p>Select the measurement system</p>
 <input type="radio" name="measurement" value="metric" checked onclick="setMetric(1)">Metric</input>
 <input type="radio" name="measurement" value="imperial" onclick="setMetric(0)">Imperial</input>
+<h2>Device Data</h2>
 <div id="DevData"></div>
 <div id="Discretes"></div>
 <div id="BME280" style="display: none">

@@ -1,3 +1,4 @@
+"use strict";
 //
 // Call this routine when the page is finished loading.
 //

@@ -1,3 +1,4 @@
+"use strict";
 //
 // Global variables
 //
@@ -5,15 +6,18 @@ var unitMetric = 1;  // Display in metric or imperial units
 var deviceId = -1;   // Which device is currently being displayed
 var dispTimer;       // Timer used for reloading the display
 var numDevices = 0;  // Number of devices on RS-485 network
+var therm_timer;     // Timer for display refresh
 //
-// Initializes the value and starts a timer to count up.  Apparently this can't
-// just be called "animate".  Perhaps some browsers define it and some don't.
+// When the HTML page is loaded, this is called to start a timer to periodically
+// refresh the display.
 //
 function startReload()
 {
   loadNames();
   therm_timer = window.setInterval(reloadDisplay, 5000);
 }
+//
+//  This is called everytime the timer fires.  It updates the data being displayed.
 //
 function reloadDisplay()
 {
@@ -81,9 +85,11 @@ function reqNames(xml)
   }
 }
 //
+//  Request the name for a specific device.
+//
 function sendDeviceRequest(dev)
 {
-  xhttp = new XMLHttpRequest();
+  var xhttp = new XMLHttpRequest();
 
   xhttp.onreadystatechange = function()
   {
@@ -95,6 +101,8 @@ function sendDeviceRequest(dev)
   xhttp.open("GET", "/xml/Name?device=" + dev, true);
   xhttp.send();
 }
+//
+//  Display the returned name (or an error) for a specific device.
 //
 function displayName(xml, device)
 {
@@ -119,7 +127,7 @@ function displayName(xml, device)
 //
 function reqDevData(dev)
 {
-  xhttp = new XMLHttpRequest();
+  var xhttp = new XMLHttpRequest();
 
   deviceId = dev;
   xhttp.onreadystatechange = function()
@@ -133,6 +141,8 @@ function reqDevData(dev)
   xhttp.send();
 }
 //
+//  Display the data for a specific device
+//
 function dispDevData(xml)
 {
   var xmlDoc = xml.responseXML;
@@ -140,13 +150,14 @@ function dispDevData(xml)
   var name = xmlDoc.getElementsByTagName("name");
   var temp;
   var text;
-  var temp_c;
-  var temp_f;
-  var pressure;
-  var humidity;
-  var type;
-  var value;
-  var i, j;
+//  var disc_text;
+//  var temp_c;
+//  var temp_f;
+//  var pressure;
+//  var humidity;
+//  var type;
+//  var value;
+//  var i, j;
 
   if (error.length > 0)
   {
@@ -156,33 +167,19 @@ function dispDevData(xml)
   {
     text = "<h1>" + name[0].childNodes[0].nodeValue + "</h1>";
   }
+  document.getElementById("DevData").innerHTML = text;
   //
   // Discretes
   //
   temp = xmlDoc.getElementsByTagName("discrete");
   if (temp.length > 0)
   {
-    type = parseInt(xmlDoc.getElementsByTagName("disc_type")[0].childNodes[0].nodeValue);
-    value = parseInt(xmlDoc.getElementsByTagName("disc_value")[0].childNodes[0].nodeValue);
-    text += "<p>Discretes value is " + value.toString(16) + ".</p>";
-    text += "<table>";
-    for (i = 3; i >= 0; i--)
-    {
-      text += "<tr>";
-      for (j = 7; j >= 0; j--)
-      {
-        if ((value & (2**(i*8 + j))) == 0)
-        {
-          text += "<td class=\"clear\">0</td>";
-        }
-        else
-        {
-          text += "<td class=\"set\">1</td>";
-        }
-      }
-      text += "</tr>";
-    }
-    text += "</table>";
+    add_Discretes(temp[0].childNodes);
+    document.getElementById("Discretes").style.display = "block";
+  }
+  else
+  {
+    document.getElementById("Discretes").style.display = "none";
   }
   //
   // BME280
@@ -223,7 +220,56 @@ function dispDevData(xml)
   {
     document.getElementById("TSL2561").style.display = "none";
   }
-  document.getElementById("DevData").innerHTML = text;
+}
+//
+// Helper functions to display specific kinds of data.
+//
+function add_Discretes(nodeList)
+{
+  var x;
+  var i;
+  var j;
+  var type;
+  var value;
+  var text;
+  var node;
+
+  //
+  // Yes, this is a "for-case" type structure.  It's done this way because it's
+  // possible that the order of the nodes may change.
+  //
+  for (x = 0; x < nodeList.length; x++)
+  {
+    node = nodeList[x];
+    switch (node.nodeName)
+    {
+      case "disc_type":
+        type = node.childNodes[0].nodeValue;
+        break;
+      case "disc_value":
+        value = parseFloat(node.childNodes[0].nodeValue);
+        break;
+    }
+  }
+  text = "<p>Discretes value is " + value.toString(16) + ".</p><table>";
+  for (i = 3; i >= 0; i--)
+  {
+    text += "<tr>";
+    for (j = 7; j >= 0; j--)
+    {
+      if ((value & (2**(i*8 + j))) == 0)
+      {
+        text += "<td class=\"clear\">0</td>";
+      }
+      else
+      {
+        text += "<td class=\"set\">1</td>";
+      }
+    }
+    text += "</tr>";
+  }
+  text += "</table>";
+  document.getElementById("Discretes").innerHTML = text;
 }
 
 function add_BME280(nodeList)
@@ -231,6 +277,7 @@ function add_BME280(nodeList)
   var x;
   var node;
   var temp_c;
+  var temp_f;
   var pressure;
   var humidity;
   var validity;
@@ -271,10 +318,10 @@ function add_BME280(nodeList)
     }
     if (unitMetric == 1)
     {
-      document.getElementById("BME280-tempG").innerHTML = "<img src=\"/Thermometer?min=0&max=100&value=" +
-              Math.round(temp_c) + "\"></img>";
-      document.getElementById("BME280-pressG").innerHTML = "<img src=\"/Thermometer?min=90000&max=100000&value=" +
-              Math.round(pressure) + "\"></img>";
+      document.getElementById("BME280-tempG").innerHTML =
+        "<img src=\"/Thermometer?min=0&max=100&value=" + Math.round(temp_c) + "\"/>";
+      document.getElementById("BME280-pressG").innerHTML =
+        "<img src=\"/Thermometer?min=90000&max=100000&value=" + Math.round(pressure) + "\"/>";
       document.getElementById("BME280-tempT").innerHTML = temp_c.toFixed(1) + "&deg;C";
       document.getElementById("BME280-pressT").innerHTML = Math.round(pressure) + "Pa";
     }
@@ -282,23 +329,26 @@ function add_BME280(nodeList)
     {
       temp_f = (temp_c*9/5) + 32;
       pressure = pressure/3386.39;
-      document.getElementById("BME280-tempG").innerHTML = "<img src=\"/Thermometer?min=50&max=150&value=" +
-              Math.round(temp_f) + "\"></img>";
-      document.getElementById("BME280-pressG").innerHTML = "<img src=\"/Thermometer?min=2500&max=3500&value=" +
-              Math.round(pressure*100.0) + "\"></img>";
+      document.getElementById("BME280-tempG").innerHTML =
+        "<img src=\"/Thermometer?min=50&max=150&value=" + Math.round(temp_f) + "\"/>";
+      document.getElementById("BME280-pressG").innerHTML =
+        "<img src=\"/Thermometer?min=2500&max=3500&value=" + Math.round(pressure*100.0) +
+        "\"/>";
       document.getElementById("BME280-tempT").innerHTML = temp_f.toFixed(1) + "&deg;F";
       document.getElementById("BME280-pressT").innerHTML = pressure.toFixed(2) + "inHg";
     }
-    document.getElementById("BME280-humG").innerHTML = "<img src=\"/Dial?min=0&max=100&value=" +
-            Math.round(humidity) + "\"></img>";
+    document.getElementById("BME280-humG").innerHTML =
+      "<img src=\"/Dial?min=0&max=100&value=" + Math.round(humidity) + "\"/>";
     document.getElementById("BME280-humT").innerHTML = humidity.toFixed(1) + "%";
   }
   else
   {
     td_class += " error";
-    document.getElementById("BME280-tempG").innerHTML = "<img src=\"/Thermometer?min=hello\"></img>";
-    document.getElementById("BME280-pressG").innerHTML = "<img src=\"/Thermometer?min=hello\"></img>";
-    document.getElementById("BME280-humG").innerHTML = "<img src=\"/Dial?min=hello\"></img>";
+    document.getElementById("BME280-tempG").innerHTML =
+      "<img src=\"/Thermometer?min=hello\"/>";
+    document.getElementById("BME280-pressG").innerHTML =
+      "<img src=\"/Thermometer?min=hello\"/>";
+    document.getElementById("BME280-humG").innerHTML = "<img src=\"/Dial?min=hello\"/>";
     document.getElementById("BME280-tempT").innerHTML = validity + "&deg;F";
     document.getElementById("BME280-pressT").innerHTML = validity + "inHg";
     document.getElementById("BME280-humT").innerHTML = validity + "%";
