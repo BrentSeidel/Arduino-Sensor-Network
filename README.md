@@ -22,6 +22,9 @@ This is Arduino software that polls the other Arduinos on the RS-485 bus.  There
 only one of these on the bus.  There are provisions for it to accept some commands from
 the BeagleBone Black via discrete inputs.
 
+### Documentation
+This contains some documentation for the system.
+
 ### Monitor
 This is Arduino software for a device that listens to the RS-485 bus and displays output
 on an LCD.  It is currently obsolete and not being updated.  It might be useful is some
@@ -39,6 +42,10 @@ by all of the other Arduino software and needs to be placed in your Arduino libr
 ### Web
 This is Ada code for the web server that runs on the BeagleBone Black.  It is based on my
 Ada-Web-Server repository on GitHub.
+
+## Dependancies
+Some of the items in this repository depend on other repositories.  In particular:
+* Web depends on BBS-Ada and BBS-Embed-Ada
 
 ## License
 This software is licensed under GPL V3.0.  Should you with to use it with a different

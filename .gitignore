@@ -6,3 +6,4 @@ Web/main
 *.aux
 *.log
 *.gz
+*.dvi

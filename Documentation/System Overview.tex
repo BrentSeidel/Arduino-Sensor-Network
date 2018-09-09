@@ -7,8 +7,11 @@
 
 \usepackage{fancyhdr}
 \usepackage{multind}
+\usepackage{pstricks}
+\usepackage{graphicx}
+\usepackage[yyyymmdd]{datetime}
+\renewcommand{\dateseparator}{-}
 \usepackage{geometry}
-%\usepackage{tabular}
 \geometry{letterpaper}
 %
 % Front Matter
@@ -21,13 +24,22 @@
 \begin{document}
 \maketitle
 \section{Synopsis}
-This document will contain descriptions of the various components of the Arduino Sensor Network.  First is a brief overview of the various components and then a discussion of the communication protocol used between them.
+This document will contain descriptions of the various components of the Arduino Sensor Network.  First is a brief overview of the various components and then a discussion of the communication protocol used between them.  An example network is shown in Figure \ref{fig:Example}.
+
+\begin{figure}
+  \centering
+  \input{Network}
+  \caption{Example Sensor Network}
+  \label{fig:Example}
+\end{figure}
 
 \section{Components}
 The network consists of two required components plus optional components.  The required components are a single controller and one or more responders.  Listeners may optionally be added as they simply monitor the bus traffic and do not transmit.  A BeagleBone Black listener is used to present the data from the network on web pages.
 
 \subsection{Controller}
 The controller is responsible for the operation of the bus.  It sends a request command to each node on the bus and waits for a response.  It may also send data messages.  Typically requests are done in a round-robin fashion -- request node 1, request node 2, etc.  If a node does not respond within a timeout period, it is marked as missing and the next node is polled.
+
+It would probably be possible to combine the controller functions and the web gateway listener function into a BeagleBone Black or other similar embedded computer.  However, keeping them separate allows the controller to be simpler and keep the network functioning even if the web gateway has problems.  So, if presenting data collected on a web page is the primary function of the network, go ahead and combine them.  If, however the primary function of the network is monitoring and controlling something, it would be better to keep the web gateway separate.
 
 \subsection{Responder}
 One or more responders may be attached to the bus.  Each responder can produce one or more addresses of data.  The first address (address 0) is used for node identification.  It contains the name and the number of addresses produced by the node.  Additional addresses are produced depending on the sensors attached to the node and the node configuration.
