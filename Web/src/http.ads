@@ -41,16 +41,6 @@ package http is
    --
    procedure not_implemented_int(s : GNAT.Sockets.Stream_Access; item: String);
    --
-   -- Read a line from the HTTP request stream
-   --
-   function get_line_from_stream(s : GNAT.Sockets.Stream_Access)
-                                 return Ada.Strings.Unbounded.Unbounded_String;
-   --
-   -- Read a specified number of characters from the HTTP request stream
-   --
-   function get_data_from_stream(s : GNAT.Sockets.Stream_Access; len : Natural)
-                                 return Ada.Strings.Unbounded.Unbounded_String;
-   --
    -- The read_headers procedure will need to handle both GET and POST request
    -- as well as return the passed parameters.  Returned values will be the
    -- requested item and a dictionary containing the parameters.  If there are
@@ -60,8 +50,6 @@ package http is
                           method : out request_type;
                           item : out Ada.Strings.Unbounded.Unbounded_String;
                           params : in out web_common.params.Map);
-
-
    --
    -- Procedures and functions to get and set the debugging flags.
    --
@@ -78,4 +66,14 @@ private
    --
    debug_req : Boolean := False;
    debug_head : Boolean := False;
+   --
+   -- Read a line from the HTTP request stream
+   --
+   function get_line_from_stream(s : GNAT.Sockets.Stream_Access)
+                                 return Ada.Strings.Unbounded.Unbounded_String;
+   --
+   -- Read a specified number of characters from the HTTP request stream
+   --
+   function get_data_from_stream(s : GNAT.Sockets.Stream_Access; len : Natural)
+                                 return Ada.Strings.Unbounded.Unbounded_String;
 end;

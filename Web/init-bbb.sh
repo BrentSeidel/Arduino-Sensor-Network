@@ -155,3 +155,11 @@ stty -F /dev/ttyO4 raw speed 115200 -echo -echok -echoe -echoctl -echoke
 #
 # ttyO5 rd pin P8-38, tx pin P8-37, rtsn P8-32, ctsn P8-31
 #stty -F /dev/ttyO5 raw speed 115200
+#
+# Disable current services that use port 80.  Since "stop" is used instead of
+# "disable", they will be restarted when the system reboots.  So if you want them
+# back, just reboot the system.
+#
+systemctl stop bonescript.socket
+systemctl stop bonescript.service
+systemctl stop bonescript-autorun.service

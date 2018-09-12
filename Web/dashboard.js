@@ -150,14 +150,6 @@ function dispDevData(xml)
   var name = xmlDoc.getElementsByTagName("name");
   var temp;
   var text;
-//  var disc_text;
-//  var temp_c;
-//  var temp_f;
-//  var pressure;
-//  var humidity;
-//  var type;
-//  var value;
-//  var i, j;
 
   if (error.length > 0)
   {
