@@ -34,7 +34,7 @@ This document will contain descriptions of the various components of the Arduino
 \end{figure}
 
 \section{Components}
-The network consists of two required components plus optional components.  The required components are a single controller and one or more responders.  Listeners may optionally be added as they simply monitor the bus traffic and do not transmit.  A BeagleBone Black listener is used to present the data from the network on web pages.
+The network consists of two required components plus optional components.  The required components are a single controller and one or more responders.  Listeners may optionally be added as they simply monitor the bus traffic and do not transmit.  A BeagleBone Black listener is used to present the data from the network on web pages.  Note that the component boundaries are a little fuzzy in that some components can perform functions from multiple categories.
 
 \subsection{Controller}
 The controller is responsible for the operation of the bus.  It sends a request command to each node on the bus and waits for a response.  It may also send data messages.  Typically requests are done in a round-robin fashion -- request node 1, request node 2, etc.  If a node does not respond within a timeout period, it is marked as missing and the next node is polled.
