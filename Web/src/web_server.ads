@@ -11,8 +11,8 @@ package web_server is
    -- Simple procedure to decode internally generated pages.  It's used by both
    -- GET and POST methods and so should be common.
    --
-   procedure decode_internal(s : GNAT.Sockets.Stream_Access; name : String;
-                             p : web_common.params.Map);
+--   procedure decode_internal(s : GNAT.Sockets.Stream_Access; name : String;
+--                             p : web_common.params.Map);
    --
    -- Handle the details of the http request.  When a request comes in, the
    -- socket is passed via the start entry point to the task.  The task handles
@@ -30,6 +30,12 @@ package web_server is
    function get_debug return Boolean;
    procedure set_debug(f : Boolean);
 private
+   --
+   --  Build the map for internal procedure calls.  The key strings must match
+   --  the identifications in the configuration file.  This needs to be here
+   --  so that the various internal routines are accessable.
+   --
+   procedure build_internal_map;
    --
    -- The number of handler threads to create
    --

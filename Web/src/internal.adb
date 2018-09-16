@@ -15,24 +15,28 @@ with web_server;
 package body internal is
 
    --
-   -- Return various counters as an xml message.  The counters returned include:
-   -- HTTP Transaction count
-   -- Active HTTP tasks
-   -- RS-485 Activity Counter
+   --  Return various counters as an xml message.  The counters returned include:
+   --    HTTP Transaction count
+   --    Active HTTP tasks
+   --    RS-485 Activity Counter
    --
-   procedure xml_count(s : GNAT.Sockets.Stream_Access) is
+   procedure xml_count(s : GNAT.Sockets.Stream_Access;
+                       h : web_common.params.Map;
+                       p : web_common.params.Map) is
    begin
       http.ok(s, "application/xml");
       String'Write(s, "<xml><counter>" & Integer'Image(web_common.counter) &
                      "</counter><tasks>" & Integer'Image(web_common.task_counter.read) &
                      "</tasks><rs485>" & Integer'Image(Integer(rs485.activity_counter)) &
                      "</rs485></xml>" & CRLF);
-   end;
+   end xml_count;
 
    --
-   -- Display the configuration data as a table.
+   --  Display the configuration data as a table.
    --
-   procedure html_show_config(s : GNAT.Sockets.Stream_Access) is
+   procedure html_show_config(s : GNAT.Sockets.Stream_Access;
+                              h : web_common.params.Map;
+                              p : web_common.params.Map) is
       index : web_common.dictionary.Cursor := web_common.dictionary.First(web_common.directory);
       el : web_common.element;
    begin
@@ -42,7 +46,7 @@ package body internal is
       String'Write(s, "<table>" & CRLF);
       String'Write(s, "<tr><th>Key</th><th>File Name</th><th>MIME Type</th></tr></tr>" & CRLF);
       --
-      -- Start table and populate it by iterating over directory
+      --  Start table and populate it by iterating over directory
       --
       while (web_common.dictionary.Has_Element(index)) loop
          el := web_common.dictionary.Element(index);
@@ -53,33 +57,53 @@ package body internal is
       end loop;
       String'Write(s, "</table>" & CRLF);
       html.html_end(s, "footer.html");
-   end;
+   end html_show_config;
    --
-   -- Display information sent in a form
+   --  Display information sent in a form
    --
-   procedure target(s : GNAT.Sockets.Stream_Access; p : web_common.params.Map) is
+   procedure target(s : GNAT.Sockets.Stream_Access;
+                    h : web_common.params.Map;
+                    p : web_common.params.Map) is
       index : web_common.params.Cursor := web_common.params.First(p);
    begin
       http.ok(s, "text/html");
       html.html_head(s, "Form Parameters", "Style");
       String'Write(s, "<p>Table showing the parameters submitted in a form</p>" & CRLF);
+      --
+      --  Write a table for the headers
+      --
+      String'Write(s, "<h2>Headers</h2>" & CRLF);
       String'Write(s, "<table>" & CRLF);
-      String'Write(s, "<tr><th>Key</th><th>Value</th></tr></tr>" & CRLF);
-      --
-      -- Start table and populate it by iterating over directory
-      --
+      String'Write(s, "<tr><th>Header</th><th>Value</th></tr></tr>" & CRLF);
+      index := web_common.params.First(h);
       while (web_common.params.Has_Element(index)) loop
          String'Write(s, "<tr><td>" & web_common.params.Key(index) & "</td><td>" &
                         web_common.params.Element(index) & "</td></tr>" & CRLF);
          web_common.params.Next(index);
       end loop;
       String'Write(s, "</table>" & CRLF);
+      --
+      -- Write a table for the parameters
+      --
+      String'Write(s, "<h2>Form Parameters</h2>" & CRLF);
+      String'Write(s, "<table>" & CRLF);
+      String'Write(s, "<tr><th>Key</th><th>Value</th></tr></tr>" & CRLF);
+      index := web_common.params.First(p);
+      while (web_common.params.Has_Element(index)) loop
+         String'Write(s, "<tr><td>" & web_common.params.Key(index) & "</td><td>" &
+                        web_common.params.Element(index) & "</td></tr>" & CRLF);
+         web_common.params.Next(index);
+      end loop;
+      String'Write(s, "</table>" & CRLF);
+      String'Write(s, "<h2>Headers</h2>" & CRLF);
       html.html_end(s, "footer.html");
-   end;
+   end target;
    --
-   -- Request that the configuration file be reloaded.
+   --  Request that the configuration file be reloaded.
    --
-   procedure html_reload_config(s : GNAT.Sockets.Stream_Access) is
+   procedure html_reload_config(s : GNAT.Sockets.Stream_Access;
+                                h : web_common.params.Map;
+                                p : web_common.params.Map) is
    begin
       http.ok(s, "text/html");
       html.html_head(s, "Reload Requested", "Style");
@@ -87,12 +111,14 @@ package body internal is
       String'Write(s, "<p>Configuration file reload request submitted.</p>" & CRLF);
       html.html_end(s, "footer.html");
       web_common.reload_configuration := True;
-   end;
+   end html_reload_config;
 
    --
    -- Display table consisting of data for all devices
    --
-   procedure html_devices(s : GNAT.Sockets.Stream_Access) is
+   procedure html_devices(s : GNAT.Sockets.Stream_Access;
+                          h : web_common.params.Map;
+                          p : web_common.params.Map) is
       t : rs485.data_record;
    begin
       http.ok(s, "text/html");
@@ -135,10 +161,10 @@ package body internal is
       end loop;
       String'Write(s, "</table>" & CRLF);
       html.html_end(s, "footer.html");
-   end;
+   end html_devices;
 
    --
-   -- Display an info record as a table that can be nested in another table
+   --  Display an info record as a table that can be nested in another table
    --
    procedure html_info(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
    begin
@@ -147,10 +173,10 @@ package body internal is
       String'Write(s, "<td>" & Integer'Image(Integer(d.num_addr)) & "</td>");
       String'Write(s, "<td>" & d.name & "</td></tr>" & CRLF);
       String'Write(s, "</table>" & CRLF);
-   end;
+   end html_info;
 
    --
-   -- Display an BME280 record as a table that can be nested in another table
+   --  Display an BME280 record as a table that can be nested in another table
    --
    procedure html_bme280(s : GNAT.Sockets.Stream_Access; d : rs485.data_record;
                          metric : Boolean) is
@@ -178,10 +204,9 @@ package body internal is
       String'Write(s, "<td>" & Integer'Image(Integer(d.BME280_humidity)) &
                      "%</td>");
       String'Write(s, "</tr></table>" & CRLF);
-   end;
-
+   end html_bme280;
    --
-   -- Display an discrete record as a table that can be nested in another table
+   --  Display an discrete record as a table that can be nested in another table
    --
    procedure html_discrete(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
       t : BBS.embed.uint32 := d.disc_value;
@@ -199,10 +224,9 @@ package body internal is
          String'Write(s, "</tr>" & CRLF);
       end loop;
       String'Write(s, "</table>" & CRLF);
-   end;
-
+   end html_discrete;
    --
-   -- Display an CCS811 record as a table that can be nested in another table
+   --  Display an CCS811 record as a table that can be nested in another table
    --
    procedure html_ccs811(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
    begin
@@ -210,10 +234,9 @@ package body internal is
       String'Write(s, "<td>" & Integer'Image(Integer(d.CCS811_eCO2)) & "</td>");
       String'Write(s, "<td>" & Integer'Image(Integer(d.CCS811_TVOC)) & "</td>");
       String'Write(s, "</tr></table>" & CRLF);
-   end;
-
+   end html_ccs811;
    --
-   -- Display an TSL2561 record as a table that can be nested in another table
+   --  Display an TSL2561 record as a table that can be nested in another table
    --
    procedure html_tsl2561(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
    begin
@@ -223,26 +246,29 @@ package body internal is
       String'Write(s, "<td>" & Integer'Image(Integer(d.TSL2561_data1)) & "</td>");
       String'Write(s, "<td>" & Integer'Image(Integer(d.TSL2561_lux)) & "</td>");
       String'Write(s, "</tr></table>" & CRLF);
-   end;
+   end html_tsl2561;
 
    --
-   -- Provide data in XML format
+   --  Provide data in XML format
    --
-   -- Send length of data store
+   --  Send length of data store
    --
-   procedure xml_devices(s : GNAT.Sockets.Stream_Access) is
+   procedure xml_devices(s : GNAT.Sockets.Stream_Access;
+                         h : web_common.params.Map;
+                         p : web_common.params.Map) is
    begin
       http.ok(s, "application/xml");
       String'Write(s, "<xml><length>" & Integer'Image(Integer
                                                       (rs485.data_store.get_length)) &
                      "</length></xml>" & CRLF);
-   end;
-
+   end xml_devices;
    --
-   -- Get device name
-   -- Device is specfied by the parameter "device".
+   --  Get device name
+   --  Device is specfied by the parameter "device".
    --
-   procedure xml_device_name(s : GNAT.Sockets.Stream_Access; p : web_common.params.Map) is
+   procedure xml_device_name(s : GNAT.Sockets.Stream_Access;
+                             h : web_common.params.Map;
+                             p : web_common.params.Map) is
       dev_id : Integer := 0;
       t : rs485.data_record;
    begin
@@ -274,13 +300,14 @@ package body internal is
          String'Write(s, "<xml><error>No data for device " & Integer'Image(dev_id) &
                         "</error></xml>" & CRLF);
       end if;
-   end;
-
+   end xml_device_name;
    --
-   -- Get device data - returns all data for a device in XML
-   -- Device is specfied by the parameter "device".
+   --  Get device data - returns all data for a device in XML
+   --  Device is specfied by the parameter "device".
    --
-   procedure xml_device_data(s : GNAT.Sockets.Stream_Access; p : web_common.params.Map) is
+   procedure xml_device_data(s : GNAT.Sockets.Stream_Access;
+                             h : web_common.params.Map;
+                             p : web_common.params.Map) is
       dev_id : Integer := 0;
       recs : Integer;
       t : rs485.data_record;
@@ -324,12 +351,11 @@ package body internal is
          String'Write(s, "<xml><error>No data for device " & Integer'Image(dev_id) &
                         "</error></xml>" & CRLF);
       end if;
-   end;
-
+   end xml_device_data;
    --
-   -- Provide data in XML format
+   --  Provide data in XML format
    --
-   -- Provide an XML version of the info message
+   --  Provide an XML version of the info message
    --
    procedure xml_info_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
       now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
@@ -338,9 +364,9 @@ package body internal is
                      "</validity><aging>" & Duration'Image(now - d.aging) &
                      "</aging><addresses>" & Integer'Image(Integer(d.num_addr)) &
                      "</addresses><name>" & d.name & "</name></info>");
-   end;
+   end xml_info_msg;
    --
-   -- Provide an XML version of the BME280 message
+   --  Provide an XML version of the BME280 message
    --
    procedure xml_BME280_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
       now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
@@ -353,9 +379,9 @@ package body internal is
                      "</bme280_temp_c><bme280_pressure_pa>" & Float'Image(d.BME280_pressure_pa) &
                      "</bme280_pressure_pa><bme280_humidity>" & Float'Image(d.BME280_humidity) &
                      "</bme280_humidity></bme280>");
-   end;
+   end xml_BME280_msg;
    --
-   -- Provide an XML version of the discrete message
+   --  Provide an XML version of the discrete message
    --
    procedure xml_discrete_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
       now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
@@ -365,9 +391,9 @@ package body internal is
                      "</aging><disc_type>" & Integer'Image(Integer(d.disc_type)) &
                      "</disc_type><disc_value>" & Integer'Image(Integer(d.disc_value)) &
                      "</disc_value></discrete>");
-   end;
+   end xml_discrete_msg;
    --
-   -- Provide an XML version of the CCS811 message
+   --  Provide an XML version of the CCS811 message
    --
    procedure xml_ccs811_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
       now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
@@ -379,9 +405,9 @@ package body internal is
                      "</ccs811_age><ccs811_eco2>" & Integer'Image(Integer(d.CCS811_eCO2)) &
                      "</ccs811_eco2><ccs811_tvoc>" & Integer'Image(Integer(d.CCS811_TVOC)) &
                      "</ccs811_tvoc></ccs811>");
-   end;
+   end xml_ccs811_msg;
    --
-   -- Provide an XML version of the TSL2561 message
+   --  Provide an XML version of the TSL2561 message
    --
    procedure xml_tsl2561_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
       now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
@@ -395,11 +421,13 @@ package body internal is
                      "</tsl2561_data0><tsl2561_data1>" & Integer'Image(Integer(d.TSL2561_data1)) &
                      "</tsl2561_data1><tsl2561_lux>" & Integer'Image(Integer(d.TSL2561_lux)) &
                      "</tsl2561_lux></tsl2561>");
-   end;
+   end xml_tsl2561_msg;
    --
-   -- Request to send a command.
+   --  Request to send a command.
    --
-   procedure xml_send_command(s : GNAT.Sockets.Stream_Access; p : web_common.params.Map) is
+   procedure xml_send_command(s : GNAT.Sockets.Stream_Access;
+                              h : web_common.params.Map;
+                              p : web_common.params.Map) is
    begin
       http.ok(s, "application/xml");
       if (web_common.params.Contains(p, "command")) then
@@ -412,11 +440,13 @@ package body internal is
       else
          String'Write(s, "<xml><error>No command supplied</error></xml>" & CRLF);
       end if;
-   end;
+   end xml_send_command;
    --
-   -- Set and retrieve debugging flags
+   --  Set and retrieve debugging flags
    --
-   procedure xml_debugging(s : GNAT.Sockets.Stream_Access; p : web_common.params.Map) is
+   procedure xml_debugging(s : GNAT.Sockets.Stream_Access;
+                           h : web_common.params.Map;
+                           p : web_common.params.Map) is
    begin
       http.ok(s, "application/xml");
       --
@@ -478,7 +508,7 @@ package body internal is
          end;
       end if;
       --
-      -- Build XML reply giving state of all debug flags.
+      --  Build XML reply giving state of all debug flags.
       --
       String'Write(s, "<xml><rs485.char>" & Boolean'Image(rs485.get_debug_char) &
                      "</rs485.char><rs485.msg>" & Boolean'Image(rs485.get_debug_msg) &
@@ -486,6 +516,6 @@ package body internal is
                      "</http.head><http.msg>" & Boolean'Image(http.get_debug_req) &
                      "</http.msg><web.dbg>" & Boolean'Image(web_server.get_debug) &
                      "</web.dbg></xml>" & CRLF);
-   end;
+   end xml_debugging;
 
 end;

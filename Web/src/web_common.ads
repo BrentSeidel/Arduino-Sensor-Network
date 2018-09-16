@@ -5,8 +5,6 @@ with Ada.Strings.Equal_Case_Insensitive;
 with Ada.Strings.Hash_Case_Insensitive;
 with Ada.Strings.Unbounded;
 use type Ada.Strings.Unbounded.Unbounded_String;
-with Ada.Text_IO;
-with Ada.Text_IO.Unbounded_IO;
 with GNAT.Sockets;
 --
 -- This package contains assorted common constants and data for the web server.
@@ -40,6 +38,26 @@ package web_common is
       Hash => Ada.Strings.Hash_Case_Insensitive,
       Equivalent_Keys => Ada.Strings.Equal_Case_Insensitive);
    --
+   --  Define a type for the user procedures.  This is for a map used to map
+   --  the internal procedures.  The parameters are:
+   --    s - The stream to write output to.
+   --    p - Any passed parameters from the HTTP request
+   --    h - HTTP request headers.
+   --
+   type user_proc is access procedure (s : GNAT.Sockets.Stream_Access;
+                                       p : params.Map;
+                                       h : params.Map);
+   --
+   --  Instantiate a hashed map indexed by a string and containing procedure
+   --  accesses.  Used as a table to identify which internal procedure to call
+   --  for internal requests.
+   --
+   package proc_tables is new Ada.Containers.Indefinite_Hashed_Maps
+     (Element_Type => user_proc,
+      Key_Type => String,
+      Hash => Ada.Strings.Hash_Case_Insensitive,
+      Equivalent_Keys => Ada.Strings.Equal_Case_Insensitive);
+   --
    -- Procedure to load the directory from a file.
    --
    procedure load_directory(name : String);
@@ -55,8 +73,11 @@ package web_common is
    -- Common data.
    --
    directory : dictionary.Map;
+   internal_map : proc_tables.Map;
    port : constant GNAT.Sockets.Port_Type := 31415;
    CRLF : constant String := Ada.Characters.Latin_1.CR & Ada.Characters.Latin_1.LF;
+   server_header : constant String :=
+     "Server: Custom Ada 2012 Server and RS-485 Gateway" & CRLF;
    --
    -- A counter to provide some data to send to the client.
    --
