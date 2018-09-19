@@ -1,5 +1,5 @@
 with GNAT.Sockets;
-with web_common;
+with bbs.web_common;
 with rs485;
 use type rs485.message_types;
 --
@@ -11,67 +11,55 @@ package internal is
    --  Return the count of transactions as an xml message
    --
    procedure xml_count(s : GNAT.Sockets.Stream_Access;
-                       h : web_common.params.Map;
-                       p : web_common.params.Map);
+                       h : bbs.web_common.params.Map;
+                       p : bbs.web_common.params.Map);
    --
    --  Display the configuration data as a table.
    --
    procedure html_show_config(s : GNAT.Sockets.Stream_Access;
-                              h : web_common.params.Map;
-                              p : web_common.params.Map);
-   --
-   --  Display information sent in a form
-   --
-   procedure target(s : GNAT.Sockets.Stream_Access;
-                    h : web_common.params.Map;
-                    p : web_common.params.Map);
-   --
-   --  Request that the configuration file be reloaded.
-   --
-   procedure html_reload_config(s : GNAT.Sockets.Stream_Access;
-                                h : web_common.params.Map;
-                                p : web_common.params.Map);
+                              h : bbs.web_common.params.Map;
+                              p : bbs.web_common.params.Map);
    --
    --  Display table consisting of address 0 (device ID) for all devices
    --
    procedure html_devices(s : GNAT.Sockets.Stream_Access;
-                          h : web_common.params.Map;
-                          p : web_common.params.Map);
+                          h : bbs.web_common.params.Map;
+                          p : bbs.web_common.params.Map);
    --
    --  Provide data in XML format
    --
    --  Send length of data store
    --
    procedure xml_devices(s : GNAT.Sockets.Stream_Access;
-                         h : web_common.params.Map;
-                         p : web_common.params.Map);
+                         h : bbs.web_common.params.Map;
+                         p : bbs.web_common.params.Map);
    --
    --  Get device name
    --
    procedure xml_device_name(s : GNAT.Sockets.Stream_Access;
-                             h : web_common.params.Map;
-                             p : web_common.params.Map);
+                             h : bbs.web_common.params.Map;
+                             p : bbs.web_common.params.Map);
    --
    --  Get device data - all data from a device
    --
    procedure xml_device_data(s : GNAT.Sockets.Stream_Access;
-                             h : web_common.params.Map;
-                             p : web_common.params.Map);
+                             h : bbs.web_common.params.Map;
+                             p : bbs.web_common.params.Map);
    --
    --  Request to send a command to the controller.
    --
    procedure xml_send_command(s : GNAT.Sockets.Stream_Access;
-                              h : web_common.params.Map;
-                              p : web_common.params.Map);
+                              h : bbs.web_common.params.Map;
+                              p : bbs.web_common.params.Map);
    --
    --  Set and retrieve debugging flags
    --
    procedure xml_debugging(s : GNAT.Sockets.Stream_Access;
-                           h : web_common.params.Map;
-                           p : web_common.params.Map);
+                           h : bbs.web_common.params.Map;
+                           p : bbs.web_common.params.Map);
 
 private
-   CRLF : String renames web_common.CRLF;
+   CRLF : String renames bbs.web_common.CRLF;
    --
    --  Some helper functions - to be used only by other internal functions.
    --  They won't work if called with the wrong variant of rs485.data_record.

@@ -7,10 +7,9 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with BBS.embed;
 use type BBS.embed.uint32;
-with http;
-with html;
-with web_server;
---with svg;
+with bbs.http;
+with bbs.html;
+with bbs.web_server;
 
 package body internal is
 
@@ -21,12 +20,12 @@ package body internal is
    --    RS-485 Activity Counter
    --
    procedure xml_count(s : GNAT.Sockets.Stream_Access;
-                       h : web_common.params.Map;
-                       p : web_common.params.Map) is
+                       h : bbs.web_common.params.Map;
+                       p : bbs.web_common.params.Map) is
    begin
-      http.ok(s, "application/xml");
-      String'Write(s, "<xml><counter>" & Integer'Image(web_common.counter) &
-                     "</counter><tasks>" & Integer'Image(web_common.task_counter.read) &
+      bbs.http.ok(s, "application/xml");
+      String'Write(s, "<xml><counter>" & Integer'Image(bbs.web_common.counter) &
+                     "</counter><tasks>" & Integer'Image(bbs.web_common.task_counter.read) &
                      "</tasks><rs485>" & Integer'Image(Integer(rs485.activity_counter)) &
                      "</rs485></xml>" & CRLF);
    end xml_count;
@@ -35,94 +34,41 @@ package body internal is
    --  Display the configuration data as a table.
    --
    procedure html_show_config(s : GNAT.Sockets.Stream_Access;
-                              h : web_common.params.Map;
-                              p : web_common.params.Map) is
-      index : web_common.dictionary.Cursor := web_common.dictionary.First(web_common.directory);
-      el : web_common.element;
+                              h : bbs.web_common.params.Map;
+                              p : bbs.web_common.params.Map) is
+      index : bbs.web_common.dictionary.Cursor :=
+        bbs.web_common.dictionary.First(bbs.web_common.directory);
+      el : bbs.web_common.element;
    begin
-      http.ok(s, "text/html");
-      html.html_head(s, "Page Condfiguration List", "Style");
+      bbs.http.ok(s, "text/html");
+      bbs.html.html_head(s, "Page Condfiguration List", "Style");
       String'Write(s, "<p>Table showing the page configuration list</p>" & CRLF);
       String'Write(s, "<table>" & CRLF);
       String'Write(s, "<tr><th>Key</th><th>File Name</th><th>MIME Type</th></tr></tr>" & CRLF);
       --
       --  Start table and populate it by iterating over directory
       --
-      while (web_common.dictionary.Has_Element(index)) loop
-         el := web_common.dictionary.Element(index);
-         String'Write(s, "<tr><td>" & web_common.dictionary.Key(index) & "</td><td>" &
+      while (bbs.web_common.dictionary.Has_Element(index)) loop
+         el := bbs.web_common.dictionary.Element(index);
+         String'Write(s, "<tr><td>" & bbs.web_common.dictionary.Key(index) & "</td><td>" &
                         Ada.Strings.Unbounded.To_String(el.file) & "</td><td>" &
                         Ada.Strings.Unbounded.To_String(el.mime) & "</td></tr>" & CRLF);
-         web_common.dictionary.Next(index);
+         bbs.web_common.dictionary.Next(index);
       end loop;
       String'Write(s, "</table>" & CRLF);
-      html.html_end(s, "footer.html");
+      bbs.html.html_end(s, "footer.html");
    end html_show_config;
-   --
-   --  Display information sent in a form
-   --
-   procedure target(s : GNAT.Sockets.Stream_Access;
-                    h : web_common.params.Map;
-                    p : web_common.params.Map) is
-      index : web_common.params.Cursor := web_common.params.First(p);
-   begin
-      http.ok(s, "text/html");
-      html.html_head(s, "Form Parameters", "Style");
-      String'Write(s, "<p>Table showing the parameters submitted in a form</p>" & CRLF);
-      --
-      --  Write a table for the headers
-      --
-      String'Write(s, "<h2>Headers</h2>" & CRLF);
-      String'Write(s, "<table>" & CRLF);
-      String'Write(s, "<tr><th>Header</th><th>Value</th></tr></tr>" & CRLF);
-      index := web_common.params.First(h);
-      while (web_common.params.Has_Element(index)) loop
-         String'Write(s, "<tr><td>" & web_common.params.Key(index) & "</td><td>" &
-                        web_common.params.Element(index) & "</td></tr>" & CRLF);
-         web_common.params.Next(index);
-      end loop;
-      String'Write(s, "</table>" & CRLF);
-      --
-      -- Write a table for the parameters
-      --
-      String'Write(s, "<h2>Form Parameters</h2>" & CRLF);
-      String'Write(s, "<table>" & CRLF);
-      String'Write(s, "<tr><th>Key</th><th>Value</th></tr></tr>" & CRLF);
-      index := web_common.params.First(p);
-      while (web_common.params.Has_Element(index)) loop
-         String'Write(s, "<tr><td>" & web_common.params.Key(index) & "</td><td>" &
-                        web_common.params.Element(index) & "</td></tr>" & CRLF);
-         web_common.params.Next(index);
-      end loop;
-      String'Write(s, "</table>" & CRLF);
-      String'Write(s, "<h2>Headers</h2>" & CRLF);
-      html.html_end(s, "footer.html");
-   end target;
-   --
-   --  Request that the configuration file be reloaded.
-   --
-   procedure html_reload_config(s : GNAT.Sockets.Stream_Access;
-                                h : web_common.params.Map;
-                                p : web_common.params.Map) is
-   begin
-      http.ok(s, "text/html");
-      html.html_head(s, "Reload Requested", "Style");
-      String'Write(s, "<h1>Reload Request</h1>");
-      String'Write(s, "<p>Configuration file reload request submitted.</p>" & CRLF);
-      html.html_end(s, "footer.html");
-      web_common.reload_configuration := True;
-   end html_reload_config;
 
    --
    -- Display table consisting of data for all devices
    --
    procedure html_devices(s : GNAT.Sockets.Stream_Access;
-                          h : web_common.params.Map;
-                          p : web_common.params.Map) is
+                          h : bbs.web_common.params.Map;
+                          p : bbs.web_common.params.Map) is
       t : rs485.data_record;
    begin
-      http.ok(s, "text/html");
-      html.html_head(s, "Device list", "Style");
+      bbs.http.ok(s, "text/html");
+      bbs.html.html_head(s, "Device list", "Style");
       String'Write(s, "<table><tr><th>Device ID</th><th>Data</th></tr>" & CRLF);
       for i in Natural range 0 .. Integer(rs485.data_store.get_length) - 1 loop
          String'Write(s, "<tr><td>" & Integer'Image(Integer(i)) & "</td>");
@@ -160,7 +106,7 @@ package body internal is
          String'Write(s, "</table></td>" & CRLF);
       end loop;
       String'Write(s, "</table>" & CRLF);
-      html.html_end(s, "footer.html");
+      bbs.html.html_end(s, "footer.html");
    end html_devices;
 
    --
@@ -254,10 +200,10 @@ package body internal is
    --  Send length of data store
    --
    procedure xml_devices(s : GNAT.Sockets.Stream_Access;
-                         h : web_common.params.Map;
-                         p : web_common.params.Map) is
+                         h : bbs.web_common.params.Map;
+                         p : bbs.web_common.params.Map) is
    begin
-      http.ok(s, "application/xml");
+      bbs.http.ok(s, "application/xml");
       String'Write(s, "<xml><length>" & Integer'Image(Integer
                                                       (rs485.data_store.get_length)) &
                      "</length></xml>" & CRLF);
@@ -267,15 +213,15 @@ package body internal is
    --  Device is specfied by the parameter "device".
    --
    procedure xml_device_name(s : GNAT.Sockets.Stream_Access;
-                             h : web_common.params.Map;
-                             p : web_common.params.Map) is
+                             h : bbs.web_common.params.Map;
+                             p : bbs.web_common.params.Map) is
       dev_id : Integer := 0;
       t : rs485.data_record;
    begin
-      http.ok(s, "application/xml");
-      if (web_common.params.Contains(p, "device")) then
+      bbs.http.ok(s, "application/xml");
+      if (bbs.web_common.params.Contains(p, "device")) then
          begin
-            dev_id := Integer'Value(web_common.params.Element(p, "device"));
+            dev_id := Integer'Value(bbs.web_common.params.Element(p, "device"));
          exception
             when others =>
                dev_id := 0;
@@ -306,16 +252,16 @@ package body internal is
    --  Device is specfied by the parameter "device".
    --
    procedure xml_device_data(s : GNAT.Sockets.Stream_Access;
-                             h : web_common.params.Map;
-                             p : web_common.params.Map) is
+                             h : bbs.web_common.params.Map;
+                             p : bbs.web_common.params.Map) is
       dev_id : Integer := 0;
       recs : Integer;
       t : rs485.data_record;
    begin
-      http.ok(s, "application/xml");
-      if (web_common.params.Contains(p, "device")) then
+      bbs.http.ok(s, "application/xml");
+      if (bbs.web_common.params.Contains(p, "device")) then
          begin
-            dev_id := Integer'Value(web_common.params.Element(p, "device"));
+            dev_id := Integer'Value(bbs.web_common.params.Element(p, "device"));
          exception
             when others =>
                dev_id := 0;
@@ -426,13 +372,13 @@ package body internal is
    --  Request to send a command.
    --
    procedure xml_send_command(s : GNAT.Sockets.Stream_Access;
-                              h : web_common.params.Map;
-                              p : web_common.params.Map) is
+                              h : bbs.web_common.params.Map;
+                              p : bbs.web_common.params.Map) is
    begin
-      http.ok(s, "application/xml");
-      if (web_common.params.Contains(p, "command")) then
+      bbs.http.ok(s, "application/xml");
+      if (bbs.web_common.params.Contains(p, "command")) then
          declare
-            cmd : constant String := web_common.params.Element(p, "command");
+            cmd : constant String := bbs.web_common.params.Element(p, "command");
          begin
             rs485.rs485_cmd_type.send_cmd(cmd);
             String'Write(s, "<xml><command>" & cmd & "</command></xml>" & CRLF);
@@ -445,16 +391,16 @@ package body internal is
    --  Set and retrieve debugging flags
    --
    procedure xml_debugging(s : GNAT.Sockets.Stream_Access;
-                           h : web_common.params.Map;
-                           p : web_common.params.Map) is
+                           h : bbs.web_common.params.Map;
+                           p : bbs.web_common.params.Map) is
    begin
-      http.ok(s, "application/xml");
+      bbs.http.ok(s, "application/xml");
       --
       -- Check to see which flags to change
       --
-      if (web_common.params.Contains(p, "rs485.char")) then
+      if (bbs.web_common.params.Contains(p, "rs485.char")) then
          declare
-            cmd : constant String := web_common.params.Element(p, "rs485.char");
+            cmd : constant String := bbs.web_common.params.Element(p, "rs485.char");
          begin
             if (cmd(1) = 'T' or cmd(1) = 't') then
                rs485.set_debug_char(True);
@@ -463,9 +409,9 @@ package body internal is
             end if;
          end;
       end if;
-      if (web_common.params.Contains(p, "rs485.msg")) then
+      if (bbs.web_common.params.Contains(p, "rs485.msg")) then
          declare
-            cmd : constant String := web_common.params.Element(p, "rs485.msg");
+            cmd : constant String := bbs.web_common.params.Element(p, "rs485.msg");
          begin
             if (cmd(1) = 'T' or cmd(1) = 't') then
                rs485.set_debug_msg(True);
@@ -474,36 +420,36 @@ package body internal is
             end if;
          end;
       end if;
-      if (web_common.params.Contains(p, "http.head")) then
+      if (bbs.web_common.params.Contains(p, "http.head")) then
          declare
-            cmd : constant String := web_common.params.Element(p, "http.head");
+            cmd : constant String := bbs.web_common.params.Element(p, "http.head");
          begin
             if (cmd(1) = 'T' or cmd(1) = 't') then
-               http.set_debug_head(True);
+               bbs.http.set_debug_head(True);
             else
-               http.set_debug_head(False);
+               bbs.http.set_debug_head(False);
             end if;
          end;
       end if;
-      if (web_common.params.Contains(p, "http.msg")) then
+      if (bbs.web_common.params.Contains(p, "http.msg")) then
          declare
-            cmd : constant String := web_common.params.Element(p, "http.msg");
+            cmd : constant String := bbs.web_common.params.Element(p, "http.msg");
          begin
             if (cmd(1) = 'T' or cmd(1) = 't') then
-               http.set_debug_req(True);
+               bbs.http.set_debug_req(True);
             else
-               http.set_debug_req(False);
+               bbs.http.set_debug_req(False);
             end if;
          end;
       end if;
-      if (web_common.params.Contains(p, "web.dbg")) then
+      if (bbs.web_common.params.Contains(p, "web.dbg")) then
          declare
-            cmd : constant String := web_common.params.Element(p, "web.dbg");
+            cmd : constant String := bbs.web_common.params.Element(p, "web.dbg");
          begin
             if (cmd(1) = 'T' or cmd(1) = 't') then
-               web_server.set_debug(True);
+              bbs.web_server.set_debug(True);
             else
-               web_server.set_debug(False);
+               bbs.web_server.set_debug(False);
             end if;
          end;
       end if;
@@ -512,9 +458,9 @@ package body internal is
       --
       String'Write(s, "<xml><rs485.char>" & Boolean'Image(rs485.get_debug_char) &
                      "</rs485.char><rs485.msg>" & Boolean'Image(rs485.get_debug_msg) &
-                     "</rs485.msg><http.head>" & Boolean'Image(http.get_debug_head) &
-                     "</http.head><http.msg>" & Boolean'Image(http.get_debug_req) &
-                     "</http.msg><web.dbg>" & Boolean'Image(web_server.get_debug) &
+                     "</rs485.msg><http.head>" & Boolean'Image(bbs.http.get_debug_head) &
+                     "</http.head><http.msg>" & Boolean'Image(bbs.http.get_debug_req) &
+                     "</http.msg><web.dbg>" & Boolean'Image(bbs.web_server.get_debug) &
                      "</web.dbg></xml>" & CRLF);
    end xml_debugging;
 
