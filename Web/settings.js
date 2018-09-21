@@ -31,8 +31,25 @@ function displayCounter(xml)
   var count = xmlDoc.getElementsByTagName("counter")[0].childNodes[0].nodeValue;
   var tasks = xmlDoc.getElementsByTagName("tasks")[0].childNodes[0].nodeValue;
   var activity = xmlDoc.getElementsByTagName("rs485")[0].childNodes[0].nodeValue;
-  var text = count + " requests serviced<br/>" + tasks + " current active tasks" +
-             "<br/>RS-485 Activity counter " + activity;
+  var text;
+
+  if (count > 1)
+  {
+    text = count + " requests serviced<br/>";
+  }
+  else
+  {
+    text = count + " request serviced<br/>";
+  }
+  if (tasks > 1)
+  {
+    text += tasks + " current active tasks" ;
+  }
+  else
+  {
+    text += tasks + " current active task" ;
+  }
+  text += "<br/>RS-485 Activity counter " + activity;
 
   document.getElementById("count").innerHTML = text;
 }

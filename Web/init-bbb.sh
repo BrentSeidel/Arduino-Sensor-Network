@@ -55,8 +55,8 @@ echo 117 > /sys/class/gpio/export
 # Set value to "0" or "1" for output or read "0" or "1" for input.
 #
 echo "GPIO control files"
-chmod 666 /sys/class/gpio/*/direction
-chmod 666 /sys/class/gpio/*/value
+#chmod 666 /sys/class/gpio/*/direction
+#chmod 666 /sys/class/gpio/*/value
 #
 # Build the directory structures for PWMs.  As the PWMs can be rearranged each
 # time the unit is booted, this script has to figure out which pwm is where and
@@ -65,54 +65,54 @@ chmod 666 /sys/class/gpio/*/value
 # First see if /links is present and create it if not.  If it does exist, empty
 # it.
 #
-if [ -d "/links" ]
-then
-  rm /links/*
-else
-  mkdir /links
-fi
+#if [ -d "/links" ]
+#then
+#  rm /links/*
+#else
+#  mkdir /links
+#fi
 #
 echo "PWM Directory structures"
 echo "PWM0 and PWM1"
-for f in /sys/devices/platform/ocp/48300000.epwmss/48300200.ehrpwm/pwm/pwmchip*
-do
-  echo 0 > $f/export
-  echo 1 > $f/export
-  ln -s $f/pwm0 /links/pwm0 # EHRPWM0A
-  ln -s $f/pwm1 /links/pwm1 # EHRPWM0B
-done
+#for f in /sys/devices/platform/ocp/48300000.epwmss/48300200.ehrpwm/pwm/pwmchip*
+#do
+#  echo 0 > $f/export
+#  echo 1 > $f/export
+#  ln -s $f/pwm0 /links/pwm0 # EHRPWM0A
+#  ln -s $f/pwm1 /links/pwm1 # EHRPWM0B
+#done
 #
 echo "PWM2 and PWM3"
-for f in /sys/devices/platform/ocp/48302000.epwmss/48302200.ehrpwm/pwm/pwmchip*
-do
-  echo 0 > $f/export
-  echo 1 > $f/export
-  ln -s $f/pwm0 /links/pwm2 # EHRPWM1A
-  ln -s $f/pwm1 /links/pwm3 # EHRPWM1B
-done
+#for f in /sys/devices/platform/ocp/48302000.epwmss/48302200.ehrpwm/pwm/pwmchip*
+#do
+#  echo 0 > $f/export
+#  echo 1 > $f/export
+#  ln -s $f/pwm0 /links/pwm2 # EHRPWM1A
+#  ln -s $f/pwm1 /links/pwm3 # EHRPWM1B
+#done
 #
 echo "PWM4 and PWM5"
-for f in /sys/devices/platform/ocp/48304000.epwmss/48304200.ehrpwm/pwm/pwmchip*
-do
-  echo 0 > $f/export
-  echo 1 > $f/export
-  ln -s $f/pwm0 /links/pwm4 # EHRPWM2A
-  ln -s $f/pwm1 /links/pwm5 # EHRPWM2B
-done
+#for f in /sys/devices/platform/ocp/48304000.epwmss/48304200.ehrpwm/pwm/pwmchip*
+#do
+#  echo 0 > $f/export
+#  echo 1 > $f/export
+#  ln -s $f/pwm0 /links/pwm4 # EHRPWM2A
+#  ln -s $f/pwm1 /links/pwm5 # EHRPWM2B
+#done
 #
 echo "PWM6"
-for f in /sys/devices/platform/ocp/48300000.epwmss/48300100.ecap/pwm/pwmchip*
-do
-  echo 0 > $f/export
-  ln -s $f/pwm0 /links/pwm6 # ECAPPWM0
-done
+#for f in /sys/devices/platform/ocp/48300000.epwmss/48300100.ecap/pwm/pwmchip*
+#do
+#  echo 0 > $f/export
+#  ln -s $f/pwm0 /links/pwm6 # ECAPPWM0
+#done
 #
 echo "PWM7"
-for f in /sys/devices/platform/ocp/48304000.epwmss/48304100.ecap/pwm/pwmchip*
-do
-  echo 0 > $f/export
-  ln -s $f/pwm0 /links/pwm7 # ECAPPWM2
-done
+#for f in /sys/devices/platform/ocp/48304000.epwmss/48304100.ecap/pwm/pwmchip*
+#do
+#  echo 0 > $f/export
+#  ln -s $f/pwm0 /links/pwm7 # ECAPPWM2
+#done
 #
 # Note that ECAPPWM2 is on P9_28 and there is no *pinumx/state file for this
 # pin.  So this PWM currently can't be used.
@@ -120,17 +120,18 @@ done
 # Set protections for the PWM control files
 #
 echo "Set PWM protections"
-chmod 666 /links/pwm*/enable
-chmod 666 /links/pwm*/duty_cycle
-chmod 666 /links/pwm*/period
+#chmod 666 /links/pwm*/enable
+#chmod 666 /links/pwm*/duty_cycle
+#chmod 666 /links/pwm*/period
 #
 # Enable analog inputs.  This requires adding a device tree overlay.  Fortunately,
 # everything exists, so the following should be all that is needed:
 #
-echo "BB-ADC" > /sys/devices/platform/bone_capemgr/slots
+#echo "BB-ADC" > /sys/devices/platform/bone_capemgr/slots
 #
 # Set baud rate on serial inputs
 #
+echo "Setting up TTYs"
 chmod 666 /dev/ttyS*
 #
 # ttyO1 rd pin P9-26, tx pin P9-24, rtsn pin P9-19, ctsn pin P9-20
