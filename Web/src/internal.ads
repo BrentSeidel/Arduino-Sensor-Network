@@ -16,9 +16,9 @@ package internal is
    --
    --  Display the configuration data as a table.
    --
-   procedure html_show_config(s : GNAT.Sockets.Stream_Access;
-                              h : bbs.web_common.params.Map;
-                              p : bbs.web_common.params.Map);
+--   procedure html_show_config(s : GNAT.Sockets.Stream_Access;
+--                              h : bbs.web_common.params.Map;
+--                              p : bbs.web_common.params.Map);
    --
    --  Display table consisting of address 0 (device ID) for all devices
    --

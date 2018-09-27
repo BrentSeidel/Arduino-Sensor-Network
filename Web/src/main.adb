@@ -26,7 +26,7 @@ procedure Main is
       internal_map.Insert("dial", bbs.svg.dial'Access);
       internal_map.Insert("thermometer", bbs.svg.thermometer'Access);
       --
-      internal_map.Insert("configure", internal.html_show_config'Access);
+--      internal_map.Insert("configure", internal.html_show_config'Access);
       internal_map.Insert("counter", internal.xml_count'Access);
       internal_map.Insert("debugging", internal.xml_debugging'Access);
       internal_map.Insert("devices", internal.html_devices'Access);

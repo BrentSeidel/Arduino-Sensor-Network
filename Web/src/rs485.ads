@@ -132,7 +132,8 @@ package rs485 is
    --
    -- Function to convert numeric code to validity
    --
-   function code_to_validity(c : BBS.embed.uint32) return msg_validity;
+   function code_to_validity(c : BBS.embed.uint32) return msg_validity
+     with Global => Null;
    --
    -- Interface to output to send commands to the RS-485 controller.  It is in
    -- a task to prevent multiple other tasks from simultaneously trying to send
