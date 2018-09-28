@@ -1,4 +1,5 @@
 with Ada.Text_IO;
+with Ada.Exceptions;
 package body rs485 is
    --
    -- Function to convert numeric code to validity
@@ -44,9 +45,16 @@ package body rs485 is
          null;
       end start;
       Ada.Text_IO.Put_Line("Starting RS-485 state machine.");
-      Char_IO.Open(File     => file,
-                   Mode     => Char_IO.In_File,
-                   Name     => input_port);
+      begin
+        Char_IO.Open(File     => file,
+                     Mode     => Char_IO.In_File,
+                     Name     => input_port);
+      exception
+         when error: others =>
+            Ada.Text_IO.Put_Line("Exception occured opening RS-485 port");
+            Ada.Text_IO.Put_Line(Ada.Exceptions.Exception_Information(error));
+      end;
+      Ada.Text_IO.Put_Line("Opened input file " & input_port);
       while not Char_IO.End_Of_File(file) loop
          Char_IO.Read(file, buff);
          activity_counter := activity_counter + 1;
@@ -196,6 +204,7 @@ package body rs485 is
             data_store.update_data_store(temp_rec, device, address);
          end if;
       end loop;
+      Ada.Text_IO.Put_Line("End of file encountered in RS-485 data stream.");
    end state_machine;
 
    procedure wait_for_lf(c : Character; s : in out states; new_state : states) is
