@@ -4,10 +4,10 @@ with Ada.Calendar;
 with Ada.Containers;
 use type Ada.Containers.Count_Type;
 with Ada.Containers.Vectors;
-with Ada.Text_IO;
 with BBS.embed;
 use type BBS.embed.int8;
 use type BBS.embed.uint32;
+with BBS.web_common;
 
 package rs485 is
 
@@ -124,10 +124,12 @@ package rs485 is
    -- bus, analyzes the protocol, parses the data, and stores it in data_store.
    --
    task state_machine is
+--      entry start(name : String; success : out Boolean);
       entry start;
    end state_machine;
 
-   activity_counter : BBS.embed.uint32;
+   activity_counter : BBS.embed.uint32
+     with Volatile;
 
    --
    -- Function to convert numeric code to validity
@@ -140,22 +142,23 @@ package rs485 is
    -- a command and having garbled output.
    --
    task rs485_cmd_type is
+      entry start;
+      entry stop;
       entry send_cmd(cmd : String);
    end rs485_cmd_type;
 
    --
-   -- Functions and procedures to get and set the debugging flags
+   -- Flags to control display of debugging messages
    --
-   function get_debug_char return Boolean;
-   function get_debug_msg return Boolean;
-   procedure set_debug_char(f : Boolean);
-   procedure set_debug_msg(f : Boolean);
+   debug_msg  : BBS.web_common.protected_flag; -- Identify messages received
+   debug_char : BBS.web_common.protected_flag; -- Display characters received
+
 
 private
    --
    -- The tty port that is reading from the RS-485 bus.
    --
-   input_port : constant String := "/dev/ttyO4";
+   rs485_port : constant String := "/dev/ttyO4";
    --
    -- Instantiate the Generic Sequential I/O package to read characters
    --
@@ -166,18 +169,20 @@ private
    CR : constant Character := Ada.Characters.Latin_1.CR;
    LF : constant Character := Ada.Characters.Latin_1.LF;
    --
-   -- Flags to control display of debugging messages
+   -- Define the states for the state machine
    --
-   debug_msg : Boolean := False;  -- Identify messages received
-   debug_char : Boolean := False; -- Display characters received
-
    type states is (STATE_START, STATE_GET_MSG_DEV, STATE_GET_MSG_ADDR,
                    STATE_GET_MSG_TYPE, STATE_START_BUFFER, STATE_BUFFER_ENTRY,
                    STATE_BUFFER_END, STATE_WAIT_MSG_LF, STATE_GET_CMD_DEV,
                    STATE_GET_CMD_ADDR, STATE_WAIT_CMD_LF);
+   --
+   -- State machine result values
+   --
    type statuses is (STATE_RS485_PROCESSING, STATE_RS485_GOT_CMD,
                      STATE_RS485_GOT_MSG);
-
+   --
+   -- Data buffer returned from state machine.
+   --
    type data_buffer_type is array (0 .. 31) of BBS.embed.uint32;
 
    --
@@ -194,6 +199,5 @@ private
    function parse_msg_CCS811(d : data_buffer_type) return data_record;
    function parse_msg_TSL2561(d : data_buffer_type) return data_record;
    function parse_msg_unknown(d : data_buffer_type) return data_record;
-
 
 end;

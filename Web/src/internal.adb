@@ -24,40 +24,11 @@ package body internal is
                        p : bbs.web_common.params.Map) is
    begin
       bbs.http.ok(s, "application/xml");
-      String'Write(s, "<xml><counter>" & Integer'Image(bbs.web_common.counter) &
+      String'Write(s, "<xml><counter>" & Integer'Image(bbs.web_common.request_counter.read) &
                      "</counter><tasks>" & Integer'Image(bbs.web_common.task_counter.read) &
                      "</tasks><rs485>" & Integer'Image(Integer(rs485.activity_counter)) &
                      "</rs485></xml>" & CRLF);
    end xml_count;
-
-   --
-   --  Display the configuration data as a table.
-   --
---   procedure html_show_config(s : GNAT.Sockets.Stream_Access;
---                              h : bbs.web_common.params.Map;
---                              p : bbs.web_common.params.Map) is
---      index : bbs.web_common.dictionary.Cursor :=
---        bbs.web_common.dictionary.First(bbs.web_common.directory);
---      el : bbs.web_common.element;
---   begin
---      bbs.http.ok(s, "text/html");
---      bbs.html.html_head(s, "Page Condfiguration List", "Style");
---      String'Write(s, "<p>Table showing the page configuration list</p>" & CRLF);
---      String'Write(s, "<table>" & CRLF);
---      String'Write(s, "<tr><th>Key</th><th>File Name</th><th>MIME Type</th></tr></tr>" & CRLF);
-      --
-      --  Start table and populate it by iterating over directory
-      --
---      while (bbs.web_common.dictionary.Has_Element(index)) loop
---         el := bbs.web_common.dictionary.Element(index);
---         String'Write(s, "<tr><td>" & bbs.web_common.dictionary.Key(index) & "</td><td>" &
---                        Ada.Strings.Unbounded.To_String(el.file) & "</td><td>" &
---                        Ada.Strings.Unbounded.To_String(el.mime) & "</td></tr>" & CRLF);
---         bbs.web_common.dictionary.Next(index);
---      end loop;
---      String'Write(s, "</table>" & CRLF);
---      bbs.html.html_end(s, "footer.html");
---   end html_show_config;
 
    --
    -- Display table consisting of data for all devices
@@ -403,9 +374,9 @@ package body internal is
             cmd : constant String := bbs.web_common.params.Element(p, "rs485.char");
          begin
             if (cmd(1) = 'T' or cmd(1) = 't') then
-               rs485.set_debug_char(True);
+               rs485.debug_char.set;
             else
-               rs485.set_debug_char(False);
+               rs485.debug_char.clear;
             end if;
          end;
       end if;
@@ -414,9 +385,9 @@ package body internal is
             cmd : constant String := bbs.web_common.params.Element(p, "rs485.msg");
          begin
             if (cmd(1) = 'T' or cmd(1) = 't') then
-               rs485.set_debug_msg(True);
+               rs485.debug_msg.set;
             else
-               rs485.set_debug_msg(False);
+               rs485.debug_msg.clear;
             end if;
          end;
       end if;
@@ -425,9 +396,9 @@ package body internal is
             cmd : constant String := bbs.web_common.params.Element(p, "http.head");
          begin
             if (cmd(1) = 'T' or cmd(1) = 't') then
-               bbs.http.set_debug_head(True);
+               bbs.http.debug_head.set;
             else
-               bbs.http.set_debug_head(False);
+               bbs.http.debug_head.clear;
             end if;
          end;
       end if;
@@ -436,9 +407,9 @@ package body internal is
             cmd : constant String := bbs.web_common.params.Element(p, "http.msg");
          begin
             if (cmd(1) = 'T' or cmd(1) = 't') then
-               bbs.http.set_debug_req(True);
+               bbs.http.debug_req.set;
             else
-               bbs.http.set_debug_req(False);
+               bbs.http.debug_req.clear;
             end if;
          end;
       end if;
@@ -447,20 +418,20 @@ package body internal is
             cmd : constant String := bbs.web_common.params.Element(p, "web.dbg");
          begin
             if (cmd(1) = 'T' or cmd(1) = 't') then
-              bbs.web_server.set_debug(True);
+              bbs.web_server.debug.set;
             else
-               bbs.web_server.set_debug(False);
+               bbs.web_server.debug.clear;
             end if;
          end;
       end if;
       --
       --  Build XML reply giving state of all debug flags.
       --
-      String'Write(s, "<xml><rs485.char>" & Boolean'Image(rs485.get_debug_char) &
-                     "</rs485.char><rs485.msg>" & Boolean'Image(rs485.get_debug_msg) &
-                     "</rs485.msg><http.head>" & Boolean'Image(bbs.http.get_debug_head) &
-                     "</http.head><http.msg>" & Boolean'Image(bbs.http.get_debug_req) &
-                     "</http.msg><web.dbg>" & Boolean'Image(bbs.web_server.get_debug) &
+      String'Write(s, "<xml><rs485.char>" & Boolean'Image(rs485.debug_char.get) &
+                     "</rs485.char><rs485.msg>" & Boolean'Image(rs485.debug_msg.get) &
+                     "</rs485.msg><http.head>" & Boolean'Image(bbs.http.debug_head.get) &
+                     "</http.head><http.msg>" & Boolean'Image(bbs.http.debug_req.get) &
+                     "</http.msg><web.dbg>" & Boolean'Image(bbs.web_server.debug.get) &
                      "</web.dbg></xml>" & CRLF);
    end xml_debugging;
 

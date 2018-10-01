@@ -29,7 +29,7 @@ package body rs485 is
    --
    task body state_machine is
       buff : Character;
-      file : Char_IO.File_Type;
+      data_file : Char_IO.File_Type;
       rs485_state : states := STATE_START;
       status : statuses;
       data_type : message_types;
@@ -41,26 +41,26 @@ package body rs485 is
       t : BBS.embed.int8;
       temp_rec : data_record;
    begin
-      accept start do
-         null;
-      end start;
+      --
+      -- Barrier so the task doesn't start until the main program is ready.
+      --
+      accept start;
       Ada.Text_IO.Put_Line("Starting RS-485 state machine.");
-      begin
-        Char_IO.Open(File     => file,
-                     Mode     => Char_IO.In_File,
-                     Name     => input_port);
-      exception
-         when error: others =>
-            Ada.Text_IO.Put_Line("Exception occured opening RS-485 port");
-            Ada.Text_IO.Put_Line(Ada.Exceptions.Exception_Information(error));
-      end;
-      Ada.Text_IO.Put_Line("Opened input file " & input_port);
-      while not Char_IO.End_Of_File(file) loop
-         Char_IO.Read(file, buff);
+      Ada.Text_IO.Put_Line("Opening RS-485 data port " & rs485_port);
+      Char_IO.Open(File => data_file,
+                   Mode => Char_IO.In_File,
+                   Name => rs485_port,
+                   form => "SHARED=YES");
+      Ada.Text_IO.Put_Line("Opened input file.");
+      loop
+         Char_IO.Read(data_file, buff);
          activity_counter := activity_counter + 1;
-         if (debug_char) then
+         if (debug_char.get) then
             Ada.Text_IO.Put(buff);
          end if;
+         --
+         -- RS 485 state machine
+         --
          case rs485_state is
             when STATE_START =>
                status := STATE_RS485_PROCESSING;
@@ -175,18 +175,26 @@ package body rs485 is
                end if;
             when others =>
                rs485_state := STATE_START;
-         end case; -- End of main state machine
+         end case;
+         --
+         --  Determine what to do depending on the state machine results.  Right now, commands
+         --  just have a message printed for debugging purposes.  Messages are processed to
+         --  extract the data.  Anything else means that the state machine is still processing.
+         --
          if (status = STATE_RS485_GOT_CMD) then
-            if (debug_msg) then
+            if (debug_msg.get) then
                Ada.Text_IO.Put_Line("Got cmd for device " & Integer'Image(Integer(device)) &
                                       ", address " & Integer'Image(Integer(address)));
             end if;
          elsif (status = STATE_RS485_GOT_MSG) then
             data_type := message_types'Val(Integer(data_type_int));
-            if (debug_msg) then
+            if (debug_msg.get) then
                Ada.Text_IO.Put_Line("Got message from device " & Integer'Image(Integer(device)) &
                                       ", address " & Integer'Image(Integer(address)));
             end if;
+            --
+            --  Decode the message
+            --
             case data_type is
                when MSG_TYPE_INFO =>
                   temp_rec := parse_msg_info(data_buffer);
@@ -204,7 +212,11 @@ package body rs485 is
             data_store.update_data_store(temp_rec, device, address);
          end if;
       end loop;
-      Ada.Text_IO.Put_Line("End of file encountered in RS-485 data stream.");
+   exception
+      when error: others =>
+         Ada.Text_IO.Put_Line("Exception occured in RS-485 state machine.  Exiting.");
+         Ada.Text_IO.Put_Line(Ada.Exceptions.Exception_Information(error));
+         Char_IO.Close(data_file);
    end state_machine;
 
    procedure wait_for_lf(c : Character; s : in out states; new_state : states) is
@@ -398,39 +410,36 @@ package body rs485 is
    -- a command and having garbled output.
    --
    task body rs485_cmd_type is
-      file : Ada.Text_IO.File_Type;
+      cmd_file : Ada.Text_IO.File_Type;
+      exit_flag : Boolean := False;
    begin
-      Ada.Text_IO.Open(File     => file,
-                       Mode     => Ada.Text_IO.Out_File,
-                       Name     => input_port,
+      accept start;
+      Ada.Text_IO.Put_Line("Starting RS-485 command handling.");
+      Ada.Text_IO.Put_Line("Opening RS-485 command port " & rs485_port);
+      Ada.Text_IO.Open(File => cmd_file,
+                       Mode => Ada.Text_IO.Out_File,
+                       Name => rs485_port,
                        form => "SHARED=YES");
       loop
-         accept send_cmd (cmd : in String) do
-            Ada.Text_IO.Put_Line(file, cmd);
-         end send_cmd;
+         exit when exit_flag;
+         select
+            accept stop do
+              Ada.Text_IO.Put_Line("RS-485 command stop during looping.");
+               exit_flag := True;
+            end stop;
+         or
+            accept send_cmd (cmd : in String) do
+               Ada.Text_IO.Put_Line(cmd_file, cmd);
+            end send_cmd;
+         else
+            null;
+         end select;
       end loop;
---         Ada.Text_IO.Close(file);
+      Ada.Text_IO.Close(cmd_file);
+   exception
+      when error: others =>
+         Ada.Text_IO.Put_Line("Exception occured in RS-485 command task.  Exiting.");
+         Ada.Text_IO.Put_Line(Ada.Exceptions.Exception_Information(error));
    end rs485_cmd_type;
-
-   function get_debug_char return Boolean is
-   begin
-      return debug_char;
-   end;
-   --
-   function get_debug_msg return Boolean is
-   begin
-      return debug_msg;
-   end;
-   --
-   procedure set_debug_char(f : Boolean) is
-   begin
-      debug_char := f;
-   end;
-   --
-   procedure set_debug_msg(f : Boolean) is
-   begin
-      debug_msg := f;
-   end;
-   --
 
 end;
