@@ -44,10 +44,13 @@ begin
    --           There seems to be some sensitivity here where if things aren't done just right, one of the
    --           opens will fail to work properly.  I haven't yet been able to track down the exact cause,
    --           but I suspect a timing problem with the two opens.  Adding some task barriers to force them
-   --           to occur sequentually may help.
+   --           to occur sequentually may help.  This didn't help.  Maybe the opens need to occur simulatenously.
+   --           Another thing to try is to do the opens here and pass the file handles to the tasks.
    --
-   rs485.rs485_cmd_type.start;
+   rs485.command_task.start;
    rs485.state_machine.start;
+--   rs485.command_task.continue;
+--   rs485.state_machine.continue;
    --
    --  Once the RS-485 tasks are started, build the map for the web server and start it.  It should only exit
    --  if an exception occurs during processing.
@@ -59,7 +62,12 @@ begin
    --  Try to shut down the RS-485 tasks.
    --
    select
-      rs485.rs485_cmd_type.stop;
+      rs485.command_task.stop;
+   or
+      delay 1.0;
+   end select;
+   select
+      rs485.state_machine.stop;
    or
       delay 1.0;
    end select;
@@ -68,8 +76,14 @@ exception
       Ada.Text_IO.Put_Line("Unhandled exception occured during operation.");
       Ada.Text_IO.Put_Line(Ada.Exceptions.Exception_Information(err));
       select
-         rs485.rs485_cmd_type.stop;
+         rs485.command_task.stop;
+      or
+         delay 1.0;
+      end select;
+      select
+         rs485.state_machine.stop;
       or
          delay 1.0;
       end select;
 end Main;
+

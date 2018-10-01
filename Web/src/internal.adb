@@ -351,7 +351,7 @@ package body internal is
          declare
             cmd : constant String := bbs.web_common.params.Element(p, "command");
          begin
-            rs485.rs485_cmd_type.send_cmd(cmd);
+            rs485.command_task.send_cmd(cmd);
             String'Write(s, "<xml><command>" & cmd & "</command></xml>" & CRLF);
          end;
       else
