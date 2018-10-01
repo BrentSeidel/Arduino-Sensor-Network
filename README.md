@@ -40,12 +40,12 @@ This is an Arduino library that handles most of the RS-485 network protocol.  It
 by all of the other Arduino software and needs to be placed in your Arduino library folder.
 
 ### Web
-This is Ada code for the web server that runs on the BeagleBone Black.  It is based on my
+This is Ada code for the web server that runs on the BeagleBone Black.  It is uses my
 Ada-Web-Server repository on GitHub.
 
 ## Dependancies
 Some of the items in this repository depend on other repositories.  In particular:
-* Web depends on BBS-Ada and BBS-Embed-Ada
+* Web depends on Ada-Web-Server and BBS-Embed-Ada, both of which also depend on  BBS-Ada.
 
 ## License
 This software is licensed under GPL V3.0.  Should you with to use it with a different
