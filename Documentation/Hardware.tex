@@ -59,7 +59,7 @@ The responder nodes are either Arduino Unos or Boarduinos (an Arduino clone from
 \end{figure}
 
 \subsection{Controller}
-The controller is an Arduino Mega 2560.  See Figure \ref{fig:controller} for an example controller node.  The controller node needs at least two serial ports and possibly other interfaces if it is also to produce data.
+The controller is an Arduino Mega 2560.  See Figure \ref{fig:controller} for an example controller node.  Note that the RS-485 interface on the controller contains the pull up and pull down resistors for the A and B wires.  The controller node needs at least two serial ports and possibly other interfaces if it is also to produce data.
 
 \begin{figure}
   \centering

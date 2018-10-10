@@ -1,0 +1,36 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP ArduinoUno
+D Arduino Uno microcontroller
+K Microcontroller
+$ENDCMP
+#
+$CMP Arduino_Mega_2560
+D Arduino Mega 2560 Microcontroller
+$ENDCMP
+#
+$CMP BME280_Breakout
+D BME280 Sensor Breakout Board
+$ENDCMP
+#
+$CMP BeagleBone_Black
+D BeagleBone Black ARM based microcontroller
+$ENDCMP
+#
+$CMP CCS811
+D Air Quality Sensor Breakout - VOC and eCO2
+$ENDCMP
+#
+$CMP PCA9685
+D 16 Channel, 12 Bit PWM/Servo Driver
+$ENDCMP
+#
+$CMP RS-485
+D RS-485 Bus Transceiver
+$ENDCMP
+#
+$CMP TSL2561
+D Digital Luminosity/Lux/Light Sensor Breakout
+$ENDCMP
+#
+#End Doc Library
