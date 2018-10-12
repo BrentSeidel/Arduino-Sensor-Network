@@ -66,8 +66,6 @@ uint32_t end_time;
 //
 void i2c_init()
 {
-  uint8_t success;
-
   Wire.begin();
   //
   // Initialize the BME280
@@ -120,8 +118,6 @@ void i2c_init()
 //
 void i2c_state_machine()
 {
-  uint8_t success;
-
   switch (i2c_state)
   {
     case STATE_START:

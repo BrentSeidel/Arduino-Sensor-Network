@@ -97,10 +97,10 @@ static const uint8_t BME280_STAT_IM_UPDATE = 0x01;
 //
 // Local function definitions
 //
-void BME280_get_raw_values();
-int32_t BME280_cal_temp();
-uint32_t BME280_cal_press();
-uint32_t BME280_cal_hum();
+static void BME280_get_raw_values();
+static int32_t BME280_cal_temp();
+static uint32_t BME280_cal_press();
+static uint32_t BME280_cal_hum();
 //
 static void BME280_start_conversion()
 {
@@ -294,7 +294,6 @@ void BME280_init()
 uint8_t BME280_state_machine()
 {
   uint8_t machine_status = MACHINE_WORKING;
-  uint8_t device_status;
   uint8_t success;
 
   switch (BME280_state)

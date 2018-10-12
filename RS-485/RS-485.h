@@ -90,19 +90,21 @@ extern uint8_t buffer_ptr;
 //
 // Defined message types
 //
-const uint32_t MSG_TYPE_UNKNOWN = 0; // Undefined or not present.
-const uint32_t MSG_TYPE_EMPTY = 1; // Everything is OK, but no data to send
-const uint32_t MSG_TYPE_NAK = 2; // Address not supported
-const uint32_t MSG_TYPE_INFO = 3; // Address 0 information message
-const uint32_t MSG_TYPE_BME280 = 4; // BME280 sensor values
+const uint32_t MSG_TYPE_UNKNOWN = 0;  // Undefined or not present.
+const uint32_t MSG_TYPE_EMPTY = 1;    // Everything is OK, but no data to send
+const uint32_t MSG_TYPE_NAK = 2;      // Address not supported
+const uint32_t MSG_TYPE_INFO = 3;     // Address 0 information message
+const uint32_t MSG_TYPE_BME280 = 4;   // BME280 sensor values
 const uint32_t MSG_TYPE_DISCRETE = 5; // Discretes
-const uint32_t MSG_TYPE_ANALOG = 6; // Analog values
-const uint32_t MSG_TYPE_VERSION = 7; // Version/Software ID
-const uint32_t MSG_TYPE_CCS811 = 8; // CCS811 sensor values
-const uint32_t MSG_TYPE_TSL2561 = 9; // TSL2651 sensor values
+const uint32_t MSG_TYPE_ANALOG = 6;   // Analog values
+const uint32_t MSG_TYPE_VERSION = 7;  // Version/Software ID
+const uint32_t MSG_TYPE_CCS811 = 8;   // CCS811 sensor values
+const uint32_t MSG_TYPE_TSL2561 = 9;  // TSL2651 sensor values
 //
 const uint32_t DISCRETE_UNKNOWN = 0; // Unknown discrete type
-const uint32_t DISCRETE_CMD = 1; // Command discretes from controller
+const uint32_t DISCRETE_CMD = 1;     // Command discretes from controller
+const uint32_t DISCRETE_MIXED = 2;   // Mixed discrete types
+const uint32_t DISCRETE_SWITCH = 3;  // Discretes from switches
 const uint32_t DISC_CMD_LED = 0x00000001; // Turn LED on
 const uint32_t DISC_CMD_1  = 0x00000002;
 const uint32_t DISC_CMD_2  = 0x00000004;
@@ -135,7 +137,13 @@ const uint32_t DISC_CMD_28 = 0x10000000;
 const uint32_t DISC_CMD_29 = 0x20000000;
 const uint32_t DISC_CMD_30 = 0x40000000;
 const uint32_t DISC_CMD_31 = 0x80000000;
-
+//
+// Analog values - the number of values is in the 5 LSBs of the type
+//
+const uint32_t ANALOG_UNKNOWN = 0; // Unknown analog types
+const uint32_t ANALOG_MIXED = 32;  // Mixed analog types
+const uint32_t ANALOG_POT = 64;    // Analog values from potentiometers
+//
 //
 // Status codes for data
 //
@@ -163,3 +171,5 @@ extern void rs485_msg_info(HardwareSerial *rs485, uint32_t device, uint32_t addr
 	uint32_t num_addr, const char *name);
 extern void rs485_msg_disc(HardwareSerial *rs485, uint32_t device, uint32_t address,
 	uint32_t disc_type, uint32_t disc_value);
+extern void rs485_msg_analog(HardwareSerial *rs485, uint32_t device, uint32_t address,
+	uint32_t analog_type, const uint32_t *analog_values);

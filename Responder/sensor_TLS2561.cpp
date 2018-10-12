@@ -2,7 +2,7 @@
 #include <wiring_private.h>
 #include <Wire.h>
 
-static const bool DEBUG = false;
+static const bool DEBUG = true;
 //
 // I2C Stuff
 //
@@ -32,9 +32,9 @@ static const uint8_t STATE_TSL2561_FIAT_LUX = 7;
 //
 static uint8_t TSL2561_state = STATE_TSL2561_START_READ0;
 //
-void TSL2561_request_data0();
-void TSL2561_request_data1();
-unsigned int CalculateLux(unsigned int iGain, unsigned int tInt, unsigned int ch0,
+static void TSL2561_request_data0();
+static void TSL2561_request_data1();
+static unsigned int CalculateLux(unsigned int iGain, unsigned int tInt, unsigned int ch0,
                           unsigned int ch1, int iType);
 
 //
@@ -160,7 +160,6 @@ void send_TSL2561(HardwareSerial *rs485)
 uint8_t TSL2561_state_machine()
 {
   uint8_t machine_status = MACHINE_WORKING;
-  uint8_t device_status;
 
   switch (TSL2561_state)
   {

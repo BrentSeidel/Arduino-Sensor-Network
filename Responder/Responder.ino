@@ -19,7 +19,7 @@ HardwareSerial *rs485 = &Serial3;
 //
 // Configuration values.  These need to be set individually for each node.
 //
-#define DEVICE_ID 1
+#define DEVICE_ID 4
 // Name must be 32 characters padded with spaces on the end.
 //                  12345678901234567890123456789012
 #if DEVICE_ID == 1
@@ -71,11 +71,11 @@ uint8_t config_array[NUM_CONFIG];
 //
 // Set true if the node is to transmit discrete data.
 //
-const bool has_discretes = false;
+const bool has_discretes = true;
 //
 // Set true if the node is to transmit analog data.
 //
-const bool has_analogs = false;
+const bool has_analogs = true;
 //
 // Set true if a PING sonar unit is installed
 //
@@ -130,6 +130,13 @@ void setup()
     Serial.println(F("Starting initialization."));
     Serial.println(name);
   }
+#if DEVICE_ID == 4
+  analogReference(DEFAULT);
+  pinMode(8, INPUT_PULLUP);
+  pinMode(9, INPUT_PULLUP);
+  pinMode(10, INPUT_PULLUP);
+  pinMode(11, INPUT_PULLUP);
+#endif
   pinMode(TX_RX, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(TX_RX, LOW);
@@ -163,7 +170,6 @@ void setup()
 void loop()
 {
   uint8_t total_addresses;
-  uint8_t x;
 
   switch (rs485_state_machine(rs485, &Serial, DEBUG))
   {
@@ -246,16 +252,32 @@ void loop()
 //
 void determine_transmission(uint8_t value)
 {
+  int temp;
+  uint32_t analogs[1];
+
   switch (value)
   {
     case CONFIG_NAK:
       rs485_msg_nak(rs485, DEVICE_ID, address);
       break;
     case CONFIG_DISCRETE:
+#if DEVICE_ID == 4
+      temp = digitalRead(8) == HIGH   ? 1 : 0;
+      temp += digitalRead(9) == HIGH  ? 2 : 0;
+      temp += digitalRead(10) == HIGH ? 4 : 0;
+      temp += digitalRead(11) == HIGH ? 8 : 0;
+      rs485_msg_disc(rs485, DEVICE_ID, address, DISCRETE_SWITCH, temp);
+#else
       rs485_msg_disc(rs485, DEVICE_ID, address, 0, silly_counter++);
+#endif
       break;
     case CONFIG_ANALOG: // Analog transmission is not yet implemented
-      rs485_msg_nak(rs485, DEVICE_ID, address);
+#if DEVICE_ID == 4
+        analogs[0] = analogRead(5);
+        rs485_msg_analog(rs485, DEVICE_ID, address, ANALOG_POT + 1, analogs);
+#else
+        rs485_msg_nak(rs485, DEVICE_ID, address);
+#endif
       break;
     case CONFIG_BME280:
       send_BME280(rs485);
