@@ -273,7 +273,7 @@ void determine_transmission(uint8_t value)
       break;
     case CONFIG_ANALOG: // Analog transmission is not yet implemented
 #if DEVICE_ID == 4
-        analogs[0] = analogRead(5);
+        analogs[0] = analogRead(0);
         rs485_msg_analog(rs485, DEVICE_ID, address, ANALOG_POT + 1, analogs);
 #else
         rs485_msg_nak(rs485, DEVICE_ID, address);

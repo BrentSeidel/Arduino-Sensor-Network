@@ -2,7 +2,7 @@
 #include <wiring_private.h>
 #include <Wire.h>
 
-static const bool DEBUG = true;
+static const bool DEBUG = false;
 //
 // I2C Stuff
 //
