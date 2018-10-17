@@ -174,6 +174,19 @@ function dispDevData(xml)
     document.getElementById("Discretes").style.display = "none";
   }
   //
+  // Analogs
+  //
+  temp = xmlDoc.getElementsByTagName("analogs");
+  if (temp.length > 0)
+  {
+    add_Analogs(temp[0].childNodes);
+    document.getElementById("Analogs").style.display = "block";
+  }
+  else
+  {
+    document.getElementById("Analogs").style.display = "none";
+  }
+  //
   // BME280
   //
   temp = xmlDoc.getElementsByTagName("bme280");
@@ -262,6 +275,52 @@ function add_Discretes(nodeList)
   }
   text += "</table>";
   document.getElementById("Discretes").innerHTML = text;
+}
+
+function add_Analogs(nodeList)
+{
+  var i;
+  var type;
+  var count;
+  var text;
+  var node;
+  var data = [];
+
+  //
+  // Yes, this is a "for-case" type structure.  It's done this way because it's
+  // possible that the order of the nodes may change.
+  //
+  for (i = 0; i < nodeList.length; i++)
+  {
+    node = nodeList[i];
+    switch (node.nodeName)
+    {
+      case "analog_type":
+        type = node.childNodes[0].nodeValue;
+        break;
+      case "analog_count":
+        count = parseFloat(node.childNodes[0].nodeValue);
+        break;
+      case "value":
+        data.push(node.childNodes[0].nodeValue);
+        break;
+    }
+  }
+  if (count == 1)
+  {
+    text = "<p>" + count + " Analog value found</p>";
+  }
+  else
+  {
+    text = "<p>" + count + " Analog values found</p>";
+  }
+  text += "<table><tr><td>Index</td><td>Value</td></tr>";
+  for (i = 0; i < data.length; i++)
+  {
+    text += "<tr><td>" + i + "</td><td>" + data[i] + "</td></tr>";
+  }
+  text += "</table>";
+  document.getElementById("Analogs").innerHTML = text;
 }
 
 function add_BME280(nodeList)

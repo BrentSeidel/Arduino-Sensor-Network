@@ -251,6 +251,8 @@ package body internal is
                      xml_bme280_msg(s, t);
                   when rs485.MSG_TYPE_DISCRETE =>
                      xml_discrete_msg(s, t);
+                  when rs485.MSG_TYPE_ANALOG =>
+                     xml_analog_msg(s, t);
                   when rs485.MSG_TYPE_CCS811 =>
                      xml_ccs811_msg(s, t);
                   when rs485.MSG_TYPE_TSL2561 =>
@@ -309,6 +311,22 @@ package body internal is
                      "</disc_type><disc_value>" & Integer'Image(Integer(d.disc_value)) &
                      "</disc_value></discrete>");
    end xml_discrete_msg;
+   --
+   --  Provide an XML version of the analog message
+   --
+   procedure xml_analog_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+      now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
+   begin
+      String'Write(s, "<analogs><validity>" & rs485.msg_validity'Image(d.validity) &
+                     "</validity><aging>" & Duration'Image(now - d.aging) &
+                     "</aging><analog_type>" & Integer'Image(Integer(d.an_type)) &
+                     "</analog_type><analog_count>" & Integer'Image(Integer(d.an_count)) &
+                     "</analog_count>");
+      for i in Integer range 1 .. Integer(d.an_count) loop
+         String'Write(s, "<value>" & Integer'Image(Integer(d.an_data(i))) & "</value>");
+      end loop;
+      String'Write(s, "</analogs>");
+   end xml_analog_msg;
    --
    --  Provide an XML version of the CCS811 message
    --

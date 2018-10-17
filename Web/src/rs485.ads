@@ -29,6 +29,11 @@ package rs485 is
                          DATA_NO_COMPUTED, DATA_INVALID);
 
    --
+   --  Data type for array of analog values.  This is used because a defined data
+   --  type is required as an array component.  You can't just use an anonymous
+   --  array.
+   type an_data_type is array (1 .. 31) of BBS.embed.uint32;
+   --
    --  Data record is a variant record that should support all types of data.
    --  The received message is translated into the appropriate variant of this
    --  record so that the data can be stored and passed around.
@@ -51,7 +56,9 @@ package rs485 is
                disc_type : BBS.embed.uint32;
                disc_value : BBS.embed.uint32;
             when MSG_TYPE_ANALOG =>
-               null;
+               an_type : BBS.embed.uint32;
+               an_count : BBS.embed.uint32;
+               an_data : an_data_type;
             when MSG_TYPE_VERSION =>
                null;
             when MSG_TYPE_CCS811 =>
@@ -195,6 +202,7 @@ private
    --
    function parse_msg_info(d : data_buffer_type) return data_record;
    function parse_msg_discrete(d : data_buffer_type) return data_record;
+   function parse_msg_analog(d : data_buffer_type) return data_record;
    function parse_msg_BME280(d : data_buffer_type) return data_record;
    function parse_msg_CCS811(d : data_buffer_type) return data_record;
    function parse_msg_TSL2561(d : data_buffer_type) return data_record;

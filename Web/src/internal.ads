@@ -102,6 +102,10 @@ private
    --
    procedure xml_discrete_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record);
    --
+   --  Provide an XML version of the analog message
+   --
+   procedure xml_analog_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record);
+   --
    --  Provide an XML version of the CCS811 message
    --
    procedure xml_ccs811_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record);

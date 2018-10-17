@@ -209,6 +209,8 @@ package body rs485 is
                   temp_rec := parse_msg_info(data_buffer);
                when MSG_TYPE_DISCRETE =>
                   temp_rec := parse_msg_discrete(data_buffer);
+               when MSG_TYPE_ANALOG =>
+                  temp_rec := parse_msg_analog(data_buffer);
                when MSG_TYPE_BME280 =>
                   temp_rec := parse_msg_BME280(data_buffer);
                when MSG_TYPE_CCS811 =>
@@ -326,6 +328,19 @@ package body rs485 is
               disc_value => d(1));
    end;
 
+   function parse_msg_analog(d : data_buffer_type) return data_record is
+      an_type : BBS.embed.uint32 := d(0) and 16#ffffffe0#;
+      an_count : BBS.embed.uint32 := d(0) and 16#1f#;
+      temp : data_record := (validity => DATA_VALID, aging => Ada.Calendar.Clock,
+                             message => MSG_TYPE_ANALOG, an_type => an_type,
+                             an_count => an_count, an_data => (others => 0));
+   begin
+      for i in Integer range 1 .. Integer(an_count) loop
+         temp.an_data(i) := d(i);
+      end loop;
+      return temp;
+   end;
+   --
    function parse_msg_CCS811(d : data_buffer_type) return data_record is
    begin
       return (validity => code_to_validity(d(0)), aging => Ada.Calendar.Clock,
