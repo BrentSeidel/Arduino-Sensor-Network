@@ -40,3 +40,15 @@ td.container
   text-align: Center;
   border: 0px none White;
 }
+
+.padded
+{
+  margin: 5px;
+}
+
+.clickable
+{
+  text-decoration: underline;
+  padding: 1px;
+}
+

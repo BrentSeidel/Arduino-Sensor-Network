@@ -117,7 +117,7 @@ function displayName(xml, device)
   }
   else
   {
-    text = "<p onclick=\"reqDevData(" + device + ")\">" +
+    text = "<p class=\"clickable\" onclick=\"reqDevData(" + device + ")\">" +
            name[0].childNodes[0].nodeValue + "</p>";
   }
   document.getElementById("dev-" + device).innerHTML = text;
@@ -157,7 +157,7 @@ function dispDevData(xml)
   }
   else
   {
-    text = "<h1>" + name[0].childNodes[0].nodeValue + "</h1>";
+    text = "<h3>Unit name: " + name[0].childNodes[0].nodeValue + "</h3>";
   }
   document.getElementById("DevData").innerHTML = text;
   //

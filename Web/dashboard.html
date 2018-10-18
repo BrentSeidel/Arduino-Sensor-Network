@@ -14,9 +14,9 @@ devices on the RS-485 network.</p>
 <input type="radio" name="measurement" value="imperial" onclick="setMetric(0)">Imperial</input>
 <h2>Device Data</h2>
 <div id="DevData"></div>
-<div id="Discretes"></div>
-<div id="Analogs"></div>
-<div id="BME280" style="display: none">
+<div class="padded" id="Discretes"></div>
+<div class="padded" id="Analogs"></div>
+<div class="padded" id="BME280" style="display: none">
   <table><tr><th>Temperature</th><th>Pressure</th><th>Humidity</th></tr>
     <tr><td id="BME280-tempG" class="container"></td>
     <td id="BME280-pressG" class="container"></td>
@@ -26,12 +26,12 @@ devices on the RS-485 network.</p>
     <td id="BME280-humT" class="container"></td></tr>
   </table>
 </div>
-<div id="CCS811" style="display: none">
+<div class="padded"id="CCS811" style="display: none">
   <table><tr><th>CO<sub>2</sub></th><th>TVOC</th></tr>
     <tr><td id="CCS811-CO2"></td><td id="CCS811-TVOC"></td></tr>
   </table>
 </div>
-<div id="TSL2561" style="display: none">
+<div class="padded" id="TSL2561" style="display: none">
   <table><tr><th>Data 0</th><th>Data 1</th><th>Lux</th></tr>
     <tr><td id="TSL2561-Data0"></td>
     <td id="TSL2561-Data1"></td>
