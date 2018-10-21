@@ -1,0 +1,16 @@
+<?xml version="1.0" standalone='no'?><!--*-nxml-*-->
+<!-- Avahi service file for the web gateway part of the
+     Arduino RS-485 network.  This file needs to be
+     copied to /etc/avahi/services and the avahi-daemon
+     restarted.
+-->
+<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+<service-group>
+  <name replace-wildcards="yes">RS-485 Gateway for %h</name>
+  <service>
+    <type>_http._tcp</type>
+    <port>31415</port>
+    <txt-record>RS-485 to HTTP gateway using custom web server written in Ada</txt-record>
+  </service>
+</service-group>
+
