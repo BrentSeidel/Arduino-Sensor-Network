@@ -76,6 +76,7 @@ const bool has_discretes = true;
 // Set true if the node is to transmit analog data.
 //
 const bool has_analogs = true;
+const uint8_t num_analogs = 3;
 //
 // Set true if a PING sonar unit is installed
 //
@@ -253,7 +254,7 @@ void loop()
 void determine_transmission(uint8_t value)
 {
   int temp;
-  uint32_t analogs[1];
+  uint32_t analogs[num_analogs];
 
   switch (value)
   {
@@ -262,8 +263,8 @@ void determine_transmission(uint8_t value)
       break;
     case CONFIG_DISCRETE:
 #if DEVICE_ID == 4
-      temp = digitalRead(8) == HIGH   ? 1 : 0;
-      temp += digitalRead(9) == HIGH  ? 2 : 0;
+      temp  = digitalRead(8)  == HIGH ? 1 : 0;
+      temp += digitalRead(9)  == HIGH ? 2 : 0;
       temp += digitalRead(10) == HIGH ? 4 : 0;
       temp += digitalRead(11) == HIGH ? 8 : 0;
       rs485_msg_disc(rs485, DEVICE_ID, address, DISCRETE_SWITCH, temp);
@@ -274,7 +275,9 @@ void determine_transmission(uint8_t value)
     case CONFIG_ANALOG: // Analog transmission is not yet implemented
 #if DEVICE_ID == 4
         analogs[0] = analogRead(0);
-        rs485_msg_analog(rs485, DEVICE_ID, address, ANALOG_POT + 1, analogs);
+        analogs[1] = analogRead(1);
+        analogs[2] = analogRead(2);
+        rs485_msg_analog(rs485, DEVICE_ID, address, ANALOG_POT + num_analogs, analogs);
 #else
         rs485_msg_nak(rs485, DEVICE_ID, address);
 #endif
