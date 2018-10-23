@@ -17,41 +17,87 @@ HardwareSerial *rs485 = &Serial3;
 #define RS485_TX_COMPLETE (SERIAL3_TX_COMPLETE)
 #endif
 //
-// Configuration values.  These need to be set individually for each node.
-//
-#define DEVICE_ID 4
-// Name must be 32 characters padded with spaces on the end.
-//                  12345678901234567890123456789012
-#if DEVICE_ID == 1
-const char* name = "Bedroom Sensor Unit             "; // 1
-#else
-#if DEVICE_ID == 2
-const char* name = "Hall Monitor Unit               "; // 2
-#else
-#if DEVICE_ID == 3
-const char* name = "Office Sensor Unit              "; // 3
-#else
-#if DEVICE_ID == 4
-const char* name = "Development and Test Unit       "; // 4
-#else
-#if DEVICE_ID == 5
-const char* name = "Guest Room Sensor Unit          "; // 5
-#else
-#if DEVICE_ID == 6
-const char* name = "Another Sensor Unit             "; // 6
-#else
-const char* name = "Unknown Sensor Unit             "; // Other ID
-#endif
-#endif
-#endif
-#endif
-#endif
-#endif
-//
 // System configuration.  This is used to enable or disable transmission of various
 // messages depending on the nodes configuration.  In some cases (i.e. discretes or
 // analogs), additional code will need to be added to process the inputs and produce
 // the outputs.
+//
+// Configuration values.  These need to be set individually for each node.
+//   name is a fixed lenght string giving the unit name
+//   has_discretes set true if discrete values are transmitted
+//   has_analogs set true if analog values are transmitted
+//   num_analogs set to the number of analog values to transmit
+//   has_sonar set to true if PING sonar unit is installed (currently unimplemented)
+//
+// Select the DEVICE_ID to build software for
+//
+#define DEVICE_ID 4
+//
+// Set fixed part of configuration based on the DEVICE_ID
+//
+// Name must be 32 characters padded with spaces on the end.
+//                  12345678901234567890123456789012
+#if DEVICE_ID == 1
+  const char* name = "Bedroom Sensor Unit             "; // 1
+  const bool has_discretes = false;
+  const bool has_analogs = false;
+  const uint8_t num_analogs = 0;
+  const bool has_sonar = false;
+#else
+#if DEVICE_ID == 2
+  const char* name = "Hall Monitor Unit               "; // 2
+  const bool has_discretes = false;
+  const bool has_analogs = false;
+  const uint8_t num_analogs = 0;
+  const bool has_sonar = false;
+#else
+#if DEVICE_ID == 3
+  const char* name = "Office Sensor Unit              "; // 3
+  const bool has_discretes = false;
+  const bool has_analogs = false;
+  const uint8_t num_analogs = 0;
+  const bool has_sonar = false;
+#else
+#if DEVICE_ID == 4
+  const char* name = "Development and Test Unit       "; // 4
+  const bool has_discretes = true;
+  const bool has_analogs = true;
+  const uint8_t num_analogs = 3;
+  const bool has_sonar = false;
+#else
+#if DEVICE_ID == 5
+  const char* name = "Guest Room Sensor Unit          "; // 5
+  const bool has_discretes = false;
+  const bool has_analogs = false;
+  const uint8_t num_analogs = 0;
+  const bool has_sonar = false;
+#else
+#if DEVICE_ID == 6
+  const char* name = "Another Sensor Unit             "; // 6
+  const bool has_discretes = false;
+  const bool has_analogs = false;
+  const uint8_t num_analogs = 0;
+  const bool has_sonar = false;
+#else
+  const char* name = "Unknown Sensor Unit             "; // Other ID
+  const bool has_discretes = false;
+  const bool has_analogs = false;
+  const uint8_t num_analogs = 0;
+  const bool has_sonar = false;
+#endif
+#endif
+#endif
+#endif
+#endif
+#endif
+//
+// Check for the presence of I2C based sensors.  These are set during the I2C
+// initialization.  Since these are autodetected, they do not need to be specified
+// based on DEVICE_ID.
+//
+extern bool found_BME280;
+extern bool found_TSL2561;
+extern bool found_CCS811;
 //
 // Configuration constants.  When this list gets updated, the determine_transmission
 // and determine_config functions also needs to be updated.
@@ -69,26 +115,6 @@ const uint8_t NUM_CONFIG = 5; // Number of configuration items
 //
 uint8_t config_array[NUM_CONFIG];
 //
-// Set true if the node is to transmit discrete data.
-//
-const bool has_discretes = true;
-//
-// Set true if the node is to transmit analog data.
-//
-const bool has_analogs = true;
-const uint8_t num_analogs = 3;
-//
-// Set true if a PING sonar unit is installed
-//
-const bool has_sonar = false;
-//
-// Check for the presence of I2C based sensors.  These are set during the I2C
-// initialization.
-//
-extern bool found_BME280;
-extern bool found_TSL2561;
-extern bool found_CCS811;
-//
 // Build configuration array
 //
 uint8_t determine_config();
@@ -101,7 +127,7 @@ void determine_transmission(uint8_t value);
 //
 const uint8_t TX_RX = 5; // Pin 5 is used to control direction.
 //
-// Values for transmission
+// Routines to transmit I2C data
 //
 extern void send_BME280(HardwareSerial *);
 extern void send_TSL2561(HardwareSerial *);
