@@ -13,7 +13,9 @@ const uint8_t STATE_BUFFER_END = 6;
 const uint8_t STATE_WAIT_MSG_LF = 8;
 const uint8_t STATE_GET_CMD_DEV = 10;
 const uint8_t STATE_GET_CMD_ADDR = 11;
-const uint8_t STATE_WAIT_CMD_LF = 13;
+const uint8_t STATE_GET_CMD_CMD = 12;
+const uint8_t STATE_GET_CMD_ARG = 13;
+const uint8_t STATE_WAIT_CMD_LF = 14;
 uint8_t rs485_state = STATE_START;
 //
 // Data from bus
@@ -22,6 +24,8 @@ uint32_t device;
 uint32_t address;
 uint32_t data_type;
 uint32_t ages[NUM_NODES] = {0, 0, 0, 0, 0, 0, 0};
+uint32_t cmd_cmd;
+uint32_t cmd_arg;
 //
 // RS-485 data buffer
 //
@@ -32,7 +36,17 @@ uint8_t buffer_ptr = 0;
 //
 extern unsigned long millis(void);
 //
-void state_wait_for_lf(int data, uint8_t *state, uint8_t state_value)
+// Utility function to perform a soft reset 
+//
+void softReset()
+{
+  asm volatile("jmp 0");
+}
+//
+// Utility functions to support the state machine.  These should not be
+// used by other software.
+//
+static void state_wait_for_lf(int data, uint8_t *state, uint8_t state_value)
 {
   if (data == '\n')
   {
@@ -40,7 +54,7 @@ void state_wait_for_lf(int data, uint8_t *state, uint8_t state_value)
   }
 }
 //
-void state_get_device(int data, uint8_t *state)
+static void state_get_device(int data, uint8_t *state)
 {
   switch (data)
   {
@@ -98,7 +112,7 @@ void state_get_device(int data, uint8_t *state)
   }
 }
 //
-void state_get_address(int data, uint8_t *state)
+static void state_get_address(int data, uint8_t *state)
 {
   switch (data)
   {
@@ -178,7 +192,7 @@ void state_get_address(int data, uint8_t *state)
   }
 }
 //
-void state_get_type(int data, uint8_t *state)
+static void state_get_type(int data, uint8_t *state)
 {
   switch (data)
   {
@@ -233,7 +247,7 @@ void state_get_type(int data, uint8_t *state)
   }
 }
 //
-void state_process_data(char data, uint8_t *state)
+static void state_process_data(char data, uint8_t *state)
 {
   switch (data)
   {
@@ -329,6 +343,8 @@ uint8_t rs485_state_machine(HardwareSerial *rs485, HardwareSerial *dbg_port, boo
         rs485_state = STATE_GET_MSG_DEV;
       }
       device = 0;
+	  cmd_cmd = 0;
+	  cmd_arg = 0;
       break;
     case STATE_GET_MSG_DEV:
       state_get_device(data, &rs485_state);
@@ -370,6 +386,12 @@ uint8_t rs485_state_machine(HardwareSerial *rs485, HardwareSerial *dbg_port, boo
     case STATE_GET_CMD_ADDR:
       state_get_address(data, &rs485_state);
       break;
+	case STATE_GET_CMD_CMD:
+	  rs485_state = STATE_WAIT_CMD_LF;
+	  break;
+	case STATE_GET_CMD_ARG:
+	  rs485_state = STATE_WAIT_CMD_LF;
+	  break;
     case STATE_WAIT_CMD_LF:
       state_wait_for_lf(data, &rs485_state, STATE_START);
       if (rs485_state == STATE_START)

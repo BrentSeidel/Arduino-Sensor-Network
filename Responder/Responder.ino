@@ -59,7 +59,7 @@ HardwareSerial *rs485 = &Serial3;
   const bool has_sonar = false;
 #else
 #if DEVICE_ID == 4
-  const char* name = "Development and Test Unit       "; // 4
+  const char* name = "Development and Test Unit a     "; // 4
   const bool has_discretes = true;
   const bool has_analogs = true;
   const uint8_t num_analogs = 3;
@@ -212,29 +212,56 @@ void loop()
       }
       if (device == DEVICE_ID)
       {
-        if (DEBUG)
+        switch (cmd_cmd)
         {
-          Serial.print(F("Responding to device "));
-          Serial.print(device, DEC);
-          Serial.print(F(", address "));
-          Serial.println(address, DEC);
-        }
-        digitalWrite(TX_RX, HIGH);  // Prepare to transmit
-        switch (address)
-        {
-          case 0: // Build configuration and return info record
-            total_addresses = determine_config();
-            rs485_msg_info(rs485, DEVICE_ID, 0, total_addresses, name);
+          case CMD_READ:
+            if (DEBUG)
+            {
+              Serial.print(F("Responding to device "));
+              Serial.print(device, DEC);
+              Serial.print(F(", address "));
+              Serial.println(address, DEC);
+            }
+            digitalWrite(TX_RX, HIGH);  // Prepare to transmit
+            switch (address)
+            {
+              case 0: // Build configuration and return info record
+                total_addresses = determine_config();
+                rs485_msg_info(rs485, DEVICE_ID, 0, total_addresses, name);
+                break;
+              default: // Figure out what to do for other addresses
+                if (address < NUM_CONFIG)
+                {
+                  determine_transmission(config_array[address - 1]);
+                }
+                else
+                {
+                  rs485_msg_nak(rs485, DEVICE_ID, address);
+                }
+                break;
+            }
             break;
-          default: // Figure out what to do for other addresses
-            if (address < NUM_CONFIG)
+          case CMD_RESET:
+            if (DEBUG)
             {
-              determine_transmission(config_array[address - 1]);
+              Serial.print(F("Responding to reset request for device "));
+              Serial.print(device, DEC);
+              Serial.print(F(", address "));
+              Serial.println(address, DEC);
             }
-            else
+            rs485_msg_nak(rs485, DEVICE_ID, address);
+            break;
+          default:
+            if (DEBUG)
             {
-              rs485_msg_nak(rs485, DEVICE_ID, address);
+              Serial.print(F("Responding to unknown command "));
+              Serial.print(cmd_cmd, DEC);
+              Serial.print(F(", for device "));
+              Serial.print(device, DEC);
+              Serial.print(F(", address "));
+              Serial.println(address, DEC);
             }
+            rs485_msg_nak(rs485, DEVICE_ID, address);
             break;
         }
       }

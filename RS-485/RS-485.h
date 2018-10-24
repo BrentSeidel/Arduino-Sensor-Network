@@ -81,12 +81,19 @@ extern uint32_t device;
 extern uint32_t address;
 extern uint32_t data_type;
 extern uint32_t ages[NUM_NODES];
+extern uint32_t cmd_cmd;
+extern uint32_t cmd_arg;
 //
 // RS-485 data buffer
 //
 #define BUFFER_SIZE 32
 extern uint32_t data_buffer[BUFFER_SIZE];
 extern uint8_t buffer_ptr;
+//
+// Defined commands from controller
+//
+const uint32_t CMD_READ  = 0; // The default command
+const uint32_t CMD_RESET = 1; // Perform a soft reset
 //
 // Defined message types
 //
@@ -157,6 +164,10 @@ const uint8_t DATA_NO_COMPUTED = 4; // Data not computed due to invalid inputs
 //
 extern uint8_t hex_to_int(char c);
 extern uint32_t str_to_uint(const char* c);
+//
+// Utility function to perform a soft reset
+//
+extern void softReset();
 //
 // State machine function
 //
