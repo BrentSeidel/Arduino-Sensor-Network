@@ -59,7 +59,7 @@ HardwareSerial *rs485 = &Serial3;
   const bool has_sonar = false;
 #else
 #if DEVICE_ID == 4
-  const char* name = "Development and Test Unit a     "; // 4
+  const char* name = "Development and Test Unit b     "; // 4
   const bool has_discretes = true;
   const bool has_analogs = true;
   const uint8_t num_analogs = 3;
