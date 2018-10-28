@@ -127,15 +127,19 @@ uint8_t rs485_state_machine(HardwareSerial *rs485, HardwareSerial *dbg_port, boo
     case STATE_START:
       if (data == '@')
       {
+        device = 0;
+        address = 0;
+        cmd_cmd = 0;
+        cmd_arg = 0;
+        data_type = MSG_TYPE_UNKNOWN;
         rs485_state = STATE_GET_CMD_DEV;
       }
       if (data == '#')
       {
+        device = 0;
+        address = 0;
         rs485_state = STATE_GET_MSG_DEV;
       }
-      device = 0;
-	  cmd_cmd = 0;
-	  cmd_arg = 0;
       break;
     case STATE_GET_MSG_DEV: // Message processing
       temp = get_hex_digit(data);
@@ -155,9 +159,8 @@ uint8_t rs485_state_machine(HardwareSerial *rs485, HardwareSerial *dbg_port, boo
 	  }
 	  else
 	  {
-        device = (device << 4) + get_hex_digit(data);
+        device = (device << 4) + temp;
 	  }
-      address = 0;
       break;
     case STATE_GET_MSG_ADDR:
       temp = get_hex_digit(data);
@@ -181,9 +184,8 @@ uint8_t rs485_state_machine(HardwareSerial *rs485, HardwareSerial *dbg_port, boo
 	  }
 	  else
 	  {
-        address = (address << 4) + get_hex_digit(data);
+        address = (address << 4) + temp;
 	  }
-      data_type = MSG_TYPE_UNKNOWN;
       break;
     case STATE_GET_MSG_TYPE:
       temp = get_hex_digit(data);
@@ -207,7 +209,7 @@ uint8_t rs485_state_machine(HardwareSerial *rs485, HardwareSerial *dbg_port, boo
 	  }
 	  else
 	  {
-        data_type = (data_type << 4) + get_hex_digit(data);
+        data_type = (data_type << 4) + temp;
 	  }
       break;
     case STATE_START_BUFFER:
@@ -249,7 +251,7 @@ uint8_t rs485_state_machine(HardwareSerial *rs485, HardwareSerial *dbg_port, boo
 	  }
 	  else
 	  {
-        data_buffer[buffer_ptr] = (data_buffer[buffer_ptr] << 4) + get_hex_digit(data);
+        data_buffer[buffer_ptr] = (data_buffer[buffer_ptr] << 4) + temp;
 	  }
       break;
     case STATE_BUFFER_END:
@@ -281,9 +283,8 @@ uint8_t rs485_state_machine(HardwareSerial *rs485, HardwareSerial *dbg_port, boo
 	  }
 	  else
 	  {
-        device = (device << 4) + get_hex_digit(data);
+        device = (device << 4) + temp;
 	  }
-      address = 0;
       break;
     case STATE_GET_CMD_ADDR:
       temp = get_hex_digit(data);
@@ -293,7 +294,53 @@ uint8_t rs485_state_machine(HardwareSerial *rs485, HardwareSerial *dbg_port, boo
 		{
           case 0: // No data
             break;
-          case '%': // Address may be terminated by a percent sign if command address.
+          case '%': // Address may be terminated by a percent sign.
+            rs485_state = STATE_WAIT_CMD_LF;
+            break;
+          case '&': // Address may be followed by an ampersand and command
+            rs485_state = STATE_GET_CMD_CMD;
+            break;
+          default:  // Any other character is an error so restart the state machine
+            rs485_state = STATE_START;
+            break;
+		}
+	  }
+	  else
+	  {
+        address = (address << 4) + temp;
+	  }
+      break;
+	case STATE_GET_CMD_CMD:
+      temp = get_hex_digit(data);
+      if (temp < 0)
+      {
+		switch (data)
+		{
+          case 0: // No data
+            break;
+          case '&': // Command code is followed by an argument value
+            rs485_state = STATE_GET_CMD_CMD;
+            break;
+          default:  // Any other character is an error so restart the state machine
+            rs485_state = STATE_START;
+            break;
+		}
+	  }
+	  else
+	  {
+        cmd_cmd = (cmd_cmd << 4) + temp;
+	  }
+	  rs485_state = STATE_WAIT_CMD_LF;
+	  break;
+	case STATE_GET_CMD_ARG:
+      temp = get_hex_digit(data);
+      if (temp < 0)
+      {
+		switch (data)
+		{
+          case 0: // No data
+            break;
+          case '%': // Command argument is terminated by a percent sign.
             rs485_state = STATE_WAIT_CMD_LF;
             break;
           default:  // Any other character is an error so restart the state machine
@@ -303,15 +350,9 @@ uint8_t rs485_state_machine(HardwareSerial *rs485, HardwareSerial *dbg_port, boo
 	  }
 	  else
 	  {
-        address = (address << 4) + get_hex_digit(data);
+        cmd_arg = (cmd_arg << 4) + temp;
 	  }
       break;
-	case STATE_GET_CMD_CMD:
-	  rs485_state = STATE_WAIT_CMD_LF;
-	  break;
-	case STATE_GET_CMD_ARG:
-	  rs485_state = STATE_WAIT_CMD_LF;
-	  break;
     case STATE_WAIT_CMD_LF:
       state_wait_for_lf(data, &rs485_state, STATE_START);
       if (rs485_state == STATE_START)
