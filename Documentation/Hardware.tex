@@ -27,7 +27,14 @@ This document contains descriptions of the hardware used in the Arduino Sensor N
 The network is based on the RS-485 standard.
 
 \subsection{Topology}
-The network uses a daisy-chained topology.  Each end of the chain should have a termination resistor of about 120$\Omega$.  One wire in the pair should have a pull up resistor to V$_{cc}$ and the other wire should have a pull down resistor to Gnd.  This is done at the controller node.
+The network uses a daisy-chained topology.  Each end of the chain should have a termination resistor of about 120$\Omega$.  One wire in the pair should have a pull up resistor to V$_{cc}$ and the other wire should have a pull down resistor to Gnd.  This is done at the controller node (see Figure \ref{fig:controller}).
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{ControllerUnit.pdf}
+  \caption{Controller Unit}
+  \label{fig:controller}
+\end{figure}
 
 \subsection{Cabling}
 The network cabling uses CAT-5 cables due to its easy availability.  It is not quite optimum for RS-485, but works for this application.  If your application pushes the limits more, you may need another solution.
@@ -61,13 +68,6 @@ The responder nodes are either Arduino Unos or Boarduinos (an Arduino clone from
 \subsection{Controller}
 The controller is an Arduino Mega 2560.  See Figure \ref{fig:controller} for an example controller node.  Note that the RS-485 interface on the controller contains the pull up and pull down resistors for the A and B wires.  The controller node needs at least two serial ports and possibly other interfaces if it is also to produce data.
 
-\begin{figure}
-  \centering
-  \includegraphics[width=\textwidth]{ControllerUnit.pdf}
-  \caption{Controller Unit}
-  \label{fig:controller}
-\end{figure}
-
 \subsection{Web Gateway}
 The optional web gateway is a specialized form of listener.  It is based on the BeagleBone Black microcontroller.  See Figure \ref{fig:gateway} for an example web gateway node.  The HTTP gateway needs a serial port and an ethernet port.  The software is written in Ada 2012 and is based on Linux.  Any platform that supports this and has the required ports will probably work.
 
@@ -77,8 +77,6 @@ The optional web gateway is a specialized form of listener.  It is based on the 
   \caption{Web Gateway Unit}
   \label{fig:gateway}
 \end{figure}
-
-
 
 \section{Sensors}
 The responder nodes can use the discrete I/O pins and the analog input pins.  Custom code is needed to produce the data on the bus.  Software is written for three different I2C based sensors:

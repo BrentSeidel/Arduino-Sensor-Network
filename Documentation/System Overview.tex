@@ -60,92 +60,24 @@ Two types of messages are defined: Requests which only come from the controller 
 To aid in debugging, the format of the messages is in ASCII text.  The type of message is indicated by the first character, `\texttt{\@}' for requests and `\texttt{\#}' for responses.  The first two elements in both types of messages is the device ID and the address separated by a forward slash, `\texttt{/}'.  The end of the message is a percent sign, `\texttt{\%}' followed by a (currently unimplemented) checksum and a CR-LF.
 
 All of the numbers are 32 bit unsigned integers expressed in hexadecimal, with leading zeros optional.  
-%#0/1/5&1&12E9FD%FF
-%@1/1%FF
-%#1/1/4&0&0&2147E&17698C0&B507%FF
-%@2/1%FF
-%#2/1/4&0&0&1E6A8&175B972&C654%FF
-%@3/1%FF
-%#3/1/4&0&0&2147E&1768463&B5DC%FF
-%@4/2%FF
-%#4/2/9&0&6D&11&2D%FF
-%@5/2%FF
-%#5/2/8&0&0&2A7&2A%FF
-%@6/1%FF
-%#6/1/4&0&0&1F608&175D387&B682%FF
-%@7/0%FF
-%#0/1/5&1&12E9FE%FF
-%@1/1%FF
-%#1/1/4&0&0&2144A&17691C4&B529%FF
-%@2/1%FF
-%#2/1/4&0&0&1E690&175BB79&C4D7%FF
-%@3/1%FF
-%#3/1/4&0&0&2147E&1768463&B03C%FF
-%@4/1%FF
-%#4/1/5&0&4B519%FF
-%@5/1%FF
-%#5/1/4&0&0&1C2D4&174C067&C0FF%FF
-%@6/1%FF
-%#6/1/4&0&0&1F620&175D195&B47A%FF
-%@7/0%FF
-%#0/1/5&1&12EA01%FF
-%@1/1%FF
-%#1/1/4&0&0&21464&17697F6&B512%FF
-%@2/1%FF
-%#2/1/4&0&0&1E6C0&175BFA0&CA7B%FF
-%@3/1%FF
-%#3/1/4&0&0&21498&176852D&AFA3%FF
-%@4/2%FF
-%#4/2/9&0&6D&11&2D%FF
-%@5/2%FF
-%#5/2/8&0&0&27D&24%FF
-%@6/1%FF
-%#6/1/4&0&0&1F620&175CEE8&B792%FF
-%@7/0%FF
-%#0/1/5&1&12EA02%FF
-%@1/1%FF
-%#1/1/4&0&0&21464&17697F6&B529%FF
-%@2/1%FF
-%#2/1/4&0&0&1E6C0&175BA27&C70E%FF
-%@3/1%FF
-%#3/1/4&0&0&2147E&17681A9&B2D1%FF
-%@4/1%FF
-%#4/1/5&0&4B51A%FF
-%@5/1%FF
-%#5/1/4&0&0&1C2EA&174BE51&BF01%FF
-%@6/1%FF
-%#6/1/4&0&0&1F620&175D442&B64A%FF
-%@7/0%FF
-%#0/1/5&1&12EA05%FF
-%@1/1%FF
-%#1/1/4&0&0&2147E&176960D&B5B6%FF
-%@2/1%FF
-%#2/1/4&0&0&1E690&175B8BD&C590%FF
-%@3/1%FF
-%#3/1/4&0&0&21464&176890B&B1AA%FF
-%@4/2%FF
-%#4/2/9&0&6D&11&2D%FF
-%@5/2%FF
-%#5/2/8&0&0&27D&24%FF
-%@6/1%FF
-%#6/1/4&0&0&1F620&175D195&B979%FF
-%@7/0%FF
-%#0/1/5&1&12EA06%FF
-%@1/1%FF
-%#1/1/4&0&0&21464&1768FDA&B4FB%FF
-%@2/1%FF
-%#2/1/4&0&0&1E690&175C0F1&C775%FF
-%@3/1%FF
-%#3/1/4&0&0&2147E&1768463&B0D5%FF
-%@4/1%FF
-%#4/1/5&0&4B51B%FF
-%@5/1%FF
-%#5/1/4&0&0&1C2BE&174BFBE&BE6D%FF
-%@6/1%FF
-%#6/1/4&0&0&1F620&175D6F0&BD18%FF
 
 \subsubsection{Requests}
-Requests should only be sent by the controller node.  The first character in a request message is an ampersand, `\texttt{\@}'.  This is followed by the device ID in hex, followed by a forward slash, `\texttt{/}'.  Then the address in hex, followed by a percent sign, `\texttt{\%}'.  This is followed by a currently unused checksum in hex.  The message is terminated by a CR-LF.
+Requests should only be sent by the controller node.  The first character in a request message is an ampersand, `\texttt{\@}'.  This is followed by the device ID in hex, followed by a forward slash, `\texttt{/}'.  Then the address in hex.  The address is optionally followed by a command code and value, each preceded by an apmersand `\texttt{\&}'.  This is followed by a percent sign, `\texttt{\%}' and a currently unused checksum in hex.  The message is terminated by a CR-LF.
+
+If a command code is not specified, the default command code of 0 for \texttt{CMD\_READ} is used.  The currently defined command codes are in Table \ref{tab:commands}.
+
+\begin{table}
+  \centering
+  \begin{tabular}{c l l}
+    \hline
+    Value & Symbol & Meaning \\
+    \hline
+    0 & \texttt{CMD\_READ} & Read data from the specified address.\\
+    1 & \texttt{CMD\_RESET} & Perform a software reset.\\
+  \end{tabular}
+  \caption{Defined Command Codes}
+  \label{tab:commands}
+\end{table}
 
 A typical request looks something like, `\texttt{@00000001/00000000\%FF}'.  This requests address 0 from device 1.  Since leading zeros are optional, the same message can also be expressed as, `\texttt{@1/0\%FF}'.
 
@@ -157,7 +89,7 @@ The format of the responses flexible and the number of data fields sent depends 
 If the controller has data to send, it can send a response message without sending a request, as the request can be considered to be implied.
 
 \subsubsection{Message Types}
-To make the response messages easier to decode, each message has a message type field.  This indicates what to do with the rest of the data in the message.  Not all messages are currently implemented and more will likely be added.  The various message types are in Table \ref{tab:messagetype}.  Some of the message types have a subtype.  In particular, discretes have the defined types as shown in Table \ref{tab:disctype}, with more likely to be added.  When analogs get defined, there will be subtypes to indicate what the analog values represent.
+To make the response messages easier to decode, each message has a message type field.  This indicates what to do with the rest of the data in the message.  Not all messages are currently implemented and more will likely be added.  The various message types are in Table \ref{tab:messagetype}.  Some of the message types have a subtype.  In particular, discretes have the defined types as shown in Table \ref{tab:disctype}, with more likely to be added.  The analog values have the defined types as shown in Table \ref{tab:analogtype}, with more likely to be added.
 
 \begin{table}
   \centering
@@ -187,10 +119,26 @@ To make the response messages easier to decode, each message has a message type 
     Value & Symbol & Meaning \\
     \hline
     0 & \texttt{DISCRETE\_UNKNOWN} & Unknown discretes.\\
-    1 & \texttt{DISCRETE\_CMD} & Command discretes \\
+    1 & \texttt{DISCRETE\_CMD} & Command discretes.\\
+    2 & \texttt{DISCRETE\_MIXED} & Mixed discrete types.\\
+    3 & \texttt{DISCRETE\_SWITCH} & Discretes from switches.\\
   \end{tabular}
   \caption{Defined Discrete Types}
   \label{tab:disctype}
+\end{table}
+
+\begin{table}
+  \centering
+  \begin{tabular}{c l l}
+    \hline
+    Value & Symbol & Meaning \\
+    \hline
+    0 & \texttt{ANALOG\_UNKNOWN} & Unknown analog types.\\
+    32 & \texttt{ANALOG\_MIXED} & Mixed analog types.\\
+    64 & \texttt{ANALOG\_POT} & Analog values from potentiometers.\\
+  \end{tabular}
+  \caption{Defined Analog Types}
+  \label{tab:analogtype}
 \end{table}
 
 \end{document}
