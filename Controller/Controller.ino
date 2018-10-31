@@ -36,7 +36,8 @@ const uint8_t STATE_WAIT_TX = 12;
 const uint8_t STATE_WAIT_RX = 13;
 uint8_t state = STATE_START;
 //
-// Command information
+// Command definitions for general commands.  Directed commands are defined in the
+// rs485.h header file.
 //
 const uint8_t CMD_NULL = 0;       // Do nothing special
 const uint8_t CMD_LED_OFF = 1;    // Command all sensors to turn their LED off
@@ -48,8 +49,29 @@ const uint8_t CMD_ID = 4;         // Request ID from all sensor units
 //
 const uint8_t CMD_STATE_START = 0;
 const uint8_t CMD_STATE_CMD = 1;
-uint8_t cmd_state = CMD_STATE_START;
+const uint8_t CMD_STATE_GET_CMD = 2;
+const uint8_t CMD_STATE_GET_NODE = 3;
+const uint8_t CMD_STATE_GET_ARG = 4;
+const uint8_t CMD_STATE_DONE = 5;
 uint8_t read_cmd();
+struct cmd_state_type
+{
+  uint8_t state;
+  uint32_t cmd;
+  uint32_t args;
+  uint32_t node;
+  boolean directed;
+  boolean need_node;
+  boolean need_cmd;
+  boolean need_arg;
+};
+cmd_state_type cmd_data = {.state = CMD_STATE_START};
+struct directed_cmd_type
+{
+  uint32_t cmd;
+  uint32_t arg;
+};
+directed_cmd_type directed_cmd[NUM_NODES];
 //
 // Delays
 //
@@ -64,13 +86,12 @@ uint8_t read_cmd();
 //
 // Name must be 32 characters padded with spaces on the end.
 //                  12345678901234567890123456789012
-const char* name = "Control, not KAOS 1             ";
+const char* name = "Control, not KAOS 2             ";
 //
 uint32_t disc_value = 0;
 //
 // Supported number of nodes on network
 //
-//#define NUM_NODES 32 // Defined in header file.
 int node_state[NUM_NODES];
 int max_addr[NUM_NODES];
 unsigned int max_node = 7;
@@ -94,6 +115,8 @@ void setup()
   {
     node_state[x] = 0;
     max_addr[x] = 0;
+    directed_cmd[x].cmd = CMD_NULL;
+    directed_cmd[x].arg = 0;
   }
 }
 
@@ -147,13 +170,13 @@ void loop()
       {
         Serial.println("Control node transmission");
       }
-      else
-      {
+//      else
+//      {
 //        Serial.print("Requesting device ");
 //        Serial.print(node_id, DEC);
 //        Serial.print(" address ");
 //        Serial.println(node_state[node_id]);
-      }
+//      }
       digitalWrite(TX_RX, HIGH);  // Prepare to transmit
       if (node_id == CTRL_NODE)
       {
@@ -161,9 +184,6 @@ void loop()
         if (node_state[CTRL_NODE] == 0)
         {
           rs485_msg_info(rs485, CTRL_NODE, 0, 1, name);
-//          rs485->println(" "); // For some reason, the previous message doesn't always have a
-//                               // cr-lf terminating it.
-//          delay(1);
         }
         else
         {
@@ -173,9 +193,6 @@ void loop()
             led_state = led_state % 2;
           }
           rs485_msg_disc(rs485, CTRL_NODE, 1, DISCRETE_CMD, disc_value*2 + led_state);
-//          rs485->println(" "); // For some reason, the previous message doesn't always have a
-//                               // cr-lf terminating it.
-//          delay(1);
           //
           // For test purposes, just increment the discrete value.
           //
@@ -186,13 +203,36 @@ void loop()
       }
       else
       {
-        digitalWrite(CMD_PIN, HIGH);
-        rs485->print("@");
-        rs485->print(node_id, HEX);
-        rs485->print("/");
-        rs485->print(node_state[node_id], HEX);
-        rs485->println("%FF");
-        digitalWrite(CMD_PIN, LOW);
+        if (directed_cmd[node_id].cmd == CMD_READ)
+        {
+          Serial.print("Requesting read of node ");
+          Serial.println(node_id, DEC);
+          digitalWrite(CMD_PIN, HIGH);
+          rs485->print("@");
+          rs485->print(node_id, HEX);
+          rs485->print("/");
+          rs485->print(node_state[node_id], HEX);
+          rs485->println("%FF");
+          digitalWrite(CMD_PIN, LOW);
+        }
+        else
+        {
+          Serial.print("Directed command to node ");
+          Serial.println(node_id, DEC);
+          digitalWrite(CMD_PIN, HIGH);
+          rs485->print("@");
+          rs485->print(node_id, HEX);
+          rs485->print("/");
+          rs485->print(node_state[node_id], HEX);
+          rs485->print("&");
+          rs485->print(directed_cmd[node_id].cmd, HEX);
+          rs485->print("&");
+          rs485->print(directed_cmd[node_id].arg, HEX);
+          rs485->println("%FF");
+          digitalWrite(CMD_PIN, LOW);
+          directed_cmd[node_id].cmd = CMD_READ;
+          directed_cmd[node_id].arg = 0;
+        }
       }
       state = STATE_WAIT_TX;
       break;
@@ -202,7 +242,6 @@ void loop()
         digitalWrite(TX_RX, LOW);  // End transmission
         if (node_id == 0)
         {
-//          delay(1); // A little wait to allow the transmission to clear out
           state = STATE_START; // There is no response to the message from the controller
         }
         else
@@ -262,43 +301,109 @@ uint8_t read_cmd()
 
   if (data > 0)
   {
-    switch (cmd_state)
+    switch (cmd_data.state)
     {
       case CMD_STATE_START:
         if (data == '!')
         {
-          cmd_state = CMD_STATE_CMD;
+          cmd_data.state = CMD_STATE_CMD;
         }
+        cmd_data.cmd = CMD_NULL;
+        cmd_data.args = 0;
+        cmd_data.node = 0;
+        cmd_data.directed = false;
+        cmd_data.need_node = false;
+        cmd_data.need_cmd = false;
+        cmd_data.need_arg = false;
         break;
       case CMD_STATE_CMD:
         switch (data)
         {
           case 'A':
             Serial.println("Command LED Off");
-            command = CMD_LED_OFF;
+            cmd_data.cmd = CMD_LED_OFF;
+            cmd_data.state = CMD_STATE_DONE;
             break;
           case 'B':
             Serial.println("Command LED On");
-            command = CMD_LED_ON;
+            cmd_data.cmd = CMD_LED_ON;
+            cmd_data.state = CMD_STATE_DONE;
             break;
           case 'C':
             Serial.println("Command LED Toggle");
-            command = CMD_LED_TOGGLE;
+            cmd_data.cmd = CMD_LED_TOGGLE;
+            cmd_data.state = CMD_STATE_DONE;
             break;
           case 'D':
             Serial.println("Command Identify");
-            command = CMD_ID;
+            cmd_data.cmd = CMD_ID;
+            cmd_data.state = CMD_STATE_DONE;
+            break;
+          case 'R':
+            Serial.println("Command Reset");
+            cmd_data.cmd = CMD_RESET;
+            cmd_data.state = CMD_STATE_GET_NODE;
+            cmd_data.directed = true;
+            cmd_data.need_node = true;
             break;
           default:
+            cmd_data.state = CMD_STATE_START;
             break;
         }
-        cmd_state = CMD_STATE_START;
+        break;
+      case CMD_STATE_GET_CMD:
+        Serial.println("State get command.");
+        if (cmd_data.need_node)
+        {
+          cmd_data.state = CMD_STATE_GET_NODE;
+        }
+        else
+        {
+          if (cmd_data.need_arg)
+          {
+            cmd_data.state = CMD_STATE_GET_ARG;
+          }
+          else
+          {
+            cmd_data.state = CMD_STATE_DONE;
+          }
+        }
+        break;
+      case CMD_STATE_GET_NODE:
+        Serial.println("State get node.");
+        cmd_data.node = 4;
+        if (cmd_data.need_arg)
+        {
+          cmd_data.state = CMD_STATE_GET_ARG;
+        }
+        else
+        {
+          cmd_data.state = CMD_STATE_DONE;
+        }
+        break;
+      case CMD_STATE_GET_ARG:
+        Serial.println("State get arg.");
+        cmd_data.state = CMD_STATE_DONE;
+        break;
+      case CMD_STATE_DONE:
+        Serial.println("State done.");
+        cmd_data.state = CMD_STATE_START;
+        if (cmd_data.directed)
+        {
+          directed_cmd[cmd_data.node].cmd = cmd_data.cmd;
+          directed_cmd[cmd_data.node].arg = cmd_data.args;
+        }
+        else
+        {
+          command = cmd_data.cmd;
+        }
         break;
       default:
-        cmd_state = CMD_STATE_START;
+        cmd_data.state = CMD_STATE_START;
         break;
     }
     Serial.write(data);
   }
   return command;
 }
+

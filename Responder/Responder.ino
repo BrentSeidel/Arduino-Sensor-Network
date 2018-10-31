@@ -249,7 +249,8 @@ void loop()
               Serial.print(F(", address "));
               Serial.println(address, DEC);
             }
-            rs485_msg_nak(rs485, DEVICE_ID, address);
+            softReset();
+//            rs485_msg_nak(rs485, DEVICE_ID, address);
             break;
           default:
             if (DEBUG)
