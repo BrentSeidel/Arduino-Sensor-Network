@@ -86,7 +86,7 @@ directed_cmd_type directed_cmd[NUM_NODES];
 //
 // Name must be 32 characters padded with spaces on the end.
 //                  12345678901234567890123456789012
-const char* name = "Control, not KAOS 2             ";
+const char* name = "Control, not KAOS               ";
 //
 uint32_t disc_value = 0;
 //
@@ -340,11 +340,18 @@ uint8_t read_cmd()
             cmd_data.state = CMD_STATE_DONE;
             break;
           case 'R':
-            Serial.println("Command Reset");
+            Serial.println("Directed reset command");
             cmd_data.cmd = CMD_RESET;
             cmd_data.state = CMD_STATE_GET_NODE;
             cmd_data.directed = true;
             cmd_data.need_node = true;
+            break;
+          case 'S':
+            Serial.println("Directed arbitrary command");
+            cmd_data.state = CMD_STATE_GET_CMD;
+            cmd_data.directed = true;
+            cmd_data.need_node = true;
+            cmd_data.need_arg = true;
             break;
           default:
             cmd_data.state = CMD_STATE_START;
@@ -352,46 +359,89 @@ uint8_t read_cmd()
         }
         break;
       case CMD_STATE_GET_CMD:
-        Serial.println("State get command.");
-        if (cmd_data.need_node)
+//        Serial.println("State get command.");
+        if ((data >= '0') && (data <= '9'))
         {
-          cmd_data.state = CMD_STATE_GET_NODE;
+          cmd_data.cmd = cmd_data.cmd*10 + (data - '0');
         }
         else
         {
-          if (cmd_data.need_arg)
+          if ((data == ',') && (cmd_data.need_node))
+          {
+            cmd_data.state = CMD_STATE_GET_NODE;
+          }
+          else if ((data == ',') && (cmd_data.need_arg)) 
           {
             cmd_data.state = CMD_STATE_GET_ARG;
           }
-          else
+          else if (data == ',')
           {
             cmd_data.state = CMD_STATE_DONE;
+          }
+          else
+          {
+            cmd_data.state = CMD_STATE_START;
           }
         }
         break;
       case CMD_STATE_GET_NODE:
-        Serial.println("State get node.");
-        cmd_data.node = 4;
-        if (cmd_data.need_arg)
+//        Serial.println("State get node.");
+        if ((data >= '0') && (data <= '9'))
         {
-          cmd_data.state = CMD_STATE_GET_ARG;
+          cmd_data.node = cmd_data.node*10 + (data - '0');
         }
         else
         {
-          cmd_data.state = CMD_STATE_DONE;
+          if ((data == ',') && (cmd_data.need_arg)) 
+          {
+            cmd_data.state = CMD_STATE_GET_ARG;
+          }
+          else if (data == ',')
+          {
+            cmd_data.state = CMD_STATE_DONE;
+          }
+          else
+          {
+            cmd_data.state = CMD_STATE_START;
+          }
         }
         break;
       case CMD_STATE_GET_ARG:
-        Serial.println("State get arg.");
+//        Serial.println("State get arg.");
+        if ((data >= '0') && (data <= '9'))
+        {
+          cmd_data.args = cmd_data.args*10 + (data - '0');
+        }
+        else
+        {
+          if (data == ',')
+          {
+            cmd_data.state = CMD_STATE_DONE;
+          }
+          else
+          {
+            cmd_data.state = CMD_STATE_START;
+          }
+        }
+
         cmd_data.state = CMD_STATE_DONE;
         break;
       case CMD_STATE_DONE:
-        Serial.println("State done.");
+//        Serial.println("State done.");
         cmd_data.state = CMD_STATE_START;
         if (cmd_data.directed)
         {
-          directed_cmd[cmd_data.node].cmd = cmd_data.cmd;
-          directed_cmd[cmd_data.node].arg = cmd_data.args;
+          Serial.print("Sending directed command ");
+          Serial.print(cmd_data.cmd, DEC);
+          Serial.print(" to node ");
+          Serial.print(cmd_data.node, DEC);
+          Serial.print(" with arguments ");
+          Serial.println(cmd_data.args, DEC);
+          if ((cmd_data.node > 0) && (cmd_data.node < NUM_NODES))
+          {
+            directed_cmd[cmd_data.node].cmd = cmd_data.cmd;
+            directed_cmd[cmd_data.node].arg = cmd_data.args;
+          }
         }
         else
         {
