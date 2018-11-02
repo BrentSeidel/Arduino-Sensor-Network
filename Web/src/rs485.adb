@@ -163,10 +163,8 @@ package body rs485 is
                   end if;
                end if;
             when STATE_GET_CMD_ADDR =>
-               if (buff = '/') then
-                  rs485_state := STATE_START;
-               elsif (buff = '&') then
-                  rs485_state := STATE_START;
+               if (buff = '&') then
+                  rs485_state := STATE_GET_CMD_CODE;
                elsif (buff = '%') then
                   rs485_state := STATE_WAIT_CMD_CR;
                else
@@ -176,6 +174,18 @@ package body rs485 is
                   else
                      address := address*16 + BBS.embed.uint32(t);
                   end if;
+               end if;
+            when STATE_GET_CMD_CODE =>
+               if (buff = '&') then
+                  rs485_state := STATE_GET_CMD_ARG;
+               else
+                  rs485_state := STATE_START;
+               end if;
+            when STATE_GET_CMD_ARG =>
+               if (buff = '%') then
+                  rs485_state := STATE_WAIT_CMD_CR;
+               else
+                  rs485_state := STATE_START;
                end if;
             when STATE_WAIT_CMD_CR =>
                wait_for_cr(buff, rs485_state, STATE_START);
@@ -387,24 +397,33 @@ package body rs485 is
                                   addr : BBS.embed.uint32) is
          d : Natural := Natural(dev);
          a : Natural := Natural(addr);
-         t : device_vect.Vector := device_vect.Empty_Vector;
+         rec : device_record := (info_age => Ada.Calendar.Clock,
+                                 last_age => Ada.Calendar.Clock, num_addr => 0,
+                                 name => "                                ",
+                                 messages => device_vect.Empty_Vector);
       begin
          --
          -- Make sure that the device vector is long enough
          --
          while (data.Length <= Ada.Containers.Count_Type(d)) loop
-            data.Append(device_vect.Empty_Vector);
+            data.Append(rec);
          end loop;
          --
          -- Make sure that the data vector for the device is long enough
          --
-         t := data.Element(d);
-         while (t.Length <= Ada.Containers.Count_Type(a)) loop
-            t.Append((Validity => DATA_VALID, aging => Ada.Calendar.Clock,
+         rec := data.Element(d);
+         rec.last_age := Ada.Calendar.Clock;
+         if (data_in.message = MSG_TYPE_INFO) then
+            rec.info_age := Ada.Calendar.Clock;
+            rec.num_addr := data_in.num_addr;
+            rec.name := data_in.name;
+         end if;
+         while (rec.messages.Length <= Ada.Containers.Count_Type(a)) loop
+            rec.messages.Append((Validity => DATA_VALID, aging => Ada.Calendar.Clock,
                       message => MSG_TYPE_UNKNOWN));
          end loop;
-         t.Replace_Element(a, data_in);
-         data.Replace_Element(d, t);
+         rec.messages.Replace_Element(a, data_in);
+         data.Replace_Element(d, rec);
       end;
       --
       -- Extract an element from the data store.
@@ -412,7 +431,7 @@ package body rs485 is
       function get_element(dev : Natural; addr : Natural)
                            return data_record is
       begin
-         return data.Element(dev).Element(addr);
+         return data.Element(dev).messages.Element(addr);
       end;
       --
       -- Determine the length of the data store itself.
@@ -427,8 +446,16 @@ package body rs485 is
       --
       function get_length(dev : Natural) return Ada.Containers.Count_Type is
       begin
-         return data.Element(dev).Length;
+         return data.Element(dev).messages.Length;
       end;
+      --
+      -- Return the device record
+      --
+      function get_device(dev : Natural) return device_record is
+      begin
+         return data.Element(dev);
+      end;
+      --
    end data_store_type;
 
    --

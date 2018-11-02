@@ -109,18 +109,28 @@ function displayName(xml, device)
   var xmlDoc = xml.responseXML;
   var error = xmlDoc.getElementsByTagName("error");
   var name = xmlDoc.getElementsByTagName("name");
+  var presence = parseFloat(xmlDoc.getElementsByTagName("presence")[0].childNodes[0].nodeValue);
   var text;
 
   if (error.length > 0)
   {
-    text = error[0].childNodes[0].nodeValue;
+    document.getElementById("dev-" + device).innerHTML = error[0].childNodes[0].nodeValue;
+    document.getElementById("dev-" + device).className = "error";
   }
   else
   {
     text = "<p class=\"clickable\" onclick=\"reqDevData(" + device + ")\">" +
            name[0].childNodes[0].nodeValue + "</p>";
+    document.getElementById("dev-" + device).innerHTML = text;
+    if (presence > 10)
+    {
+      document.getElementById("dev-" + device).className = "stale";
+    }
+    else
+    {
+      document.getElementById("dev-" + device).className = "";
+    }
   }
-  document.getElementById("dev-" + device).innerHTML = text;
 }
 //
 // Request and present some device data

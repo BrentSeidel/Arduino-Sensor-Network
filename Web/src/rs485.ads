@@ -32,6 +32,7 @@ package rs485 is
    --  Data type for array of analog values.  This is used because a defined data
    --  type is required as an array component.  You can't just use an anonymous
    --  array.
+   --
    type an_data_type is array (1 .. 31) of BBS.embed.uint32;
    --
    --  Data record is a variant record that should support all types of data.
@@ -86,10 +87,25 @@ package rs485 is
      (Index_Type   => Natural,
       Element_Type => data_record);
 
+--   package data_vect is new Ada.Containers.Vectors
+--     (Index_Type   => Natural,
+--      Element_Type => device_vect.Vector,
+--     "=" => device_vect."=");
+   --
+   --  Record for containing device information
+   --
+   type device_record is
+      record
+         info_age : Ada.Calendar.Time;  -- Time that last info record was received.
+         last_age : Ada.Calendar.Time;  -- Time that last data was received
+         num_addr : BBS.embed.uint32;   -- Number of addresses supported by device
+         name     : String(1..32);      -- Device name
+         messages : device_vect.Vector; -- Vector of message records
+      end record;
+
    package data_vect is new Ada.Containers.Vectors
      (Index_Type   => Natural,
-      Element_Type => device_vect.Vector,
-     "=" => device_vect."=");
+      Element_Type => device_record);
    --
    --  Make the data_store_type a protected type since it is being updated by the
    --  RS-485 state machine task and read by the various web request handler
@@ -121,6 +137,10 @@ package rs485 is
       --  one of the vectors in the data store.
       --
       function get_length(dev : Natural) return Ada.Containers.Count_Type;
+      --
+      -- Return the device record
+      --
+      function get_device(dev : Natural) return device_record;
    private
       data : data_vect.Vector := data_vect.Empty_Vector;
    end data_store_type;
@@ -181,7 +201,8 @@ private
    type states is (STATE_START, STATE_GET_MSG_DEV, STATE_GET_MSG_ADDR,
                    STATE_GET_MSG_TYPE, STATE_START_BUFFER, STATE_BUFFER_ENTRY,
                    STATE_BUFFER_END, STATE_WAIT_MSG_CR, STATE_GET_CMD_DEV,
-                   STATE_GET_CMD_ADDR, STATE_WAIT_CMD_CR);
+                   STATE_GET_CMD_ADDR, STATE_GET_CMD_CODE, STATE_GET_CMD_ARG,
+                   STATE_WAIT_CMD_CR);
    --
    --  State machine result values
    --

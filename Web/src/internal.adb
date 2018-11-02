@@ -187,7 +187,9 @@ package body internal is
                              h : bbs.web_common.params.Map;
                              p : bbs.web_common.params.Map) is
       dev_id : Integer := 0;
+      now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
       t : rs485.data_record;
+      rec : rs485.device_record;
    begin
       bbs.http.ok(s, "application/xml");
       if (bbs.web_common.params.Contains(p, "device")) then
@@ -201,10 +203,15 @@ package body internal is
       if (dev_id >= 0) and (dev_id < Integer(rs485.data_store.get_length)) then
          if (rs485.data_store.get_length(dev_id) > 0) then
             t := rs485.data_store.get_element(dev_id, 0);
+            rec := rs485.data_store.get_device(dev_id);
             String'Write(s, "<xml>");
             case t.message is
                when rs485.MSG_TYPE_INFO =>
-                  xml_info_msg(s, t);
+                  String'Write(s, "<info><validity>" & rs485.msg_validity'Image(t.validity) &
+                                 "</validity><aging>" & Duration'Image(now - rec.info_age) &
+                                 "</aging><presence>" & Duration'Image(now - rec.last_age) &
+                                 "</presence><addresses>" & Integer'Image(Integer(rec.num_addr)) &
+                                 "</addresses><name>" & rec.name & "</name></info>");
                when others =>
                   String'Write(s, "<error>Unknown record type</error>");
             end case;
