@@ -59,7 +59,7 @@ HardwareSerial *rs485 = &Serial3;
   const bool has_sonar = false;
 #else
 #if DEVICE_ID == 4
-  const char* name = "Development and Test Unit b     "; // 4
+  const char* name = "Development and Test Unit PWM   "; // 4
   const bool has_discretes = true;
   const bool has_analogs = true;
   const uint8_t num_analogs = 3;
@@ -98,18 +98,20 @@ HardwareSerial *rs485 = &Serial3;
 extern bool found_BME280;
 extern bool found_TSL2561;
 extern bool found_CCS811;
+extern bool found_PCA9685;
 //
 // Configuration constants.  When this list gets updated, the determine_transmission
 // and determine_config functions also needs to be updated.
 //
-const uint8_t CONFIG_NAK = 0; // No configuration item
+const uint8_t CONFIG_NAK      = 0; // No configuration item
 const uint8_t CONFIG_DISCRETE = 1; // Discretes item
-const uint8_t CONFIG_ANALOG = 2; // Analog item
-const uint8_t CONFIG_BME280 = 3; // BME280 environment sensor
-const uint8_t CONFIG_TSL2561 = 4; // TSL2561 light sensor
-const uint8_t CONFIG_CCS811 = 5; // CCS811 air quality sensor
+const uint8_t CONFIG_ANALOG   = 2; // Analog item
+const uint8_t CONFIG_BME280   = 3; // BME280 environment sensor
+const uint8_t CONFIG_TSL2561  = 4; // TSL2561 light sensor
+const uint8_t CONFIG_CCS811   = 5; // CCS811 air quality sensor
+const uint8_t CONFIG_PCA9685  = 6; // PCA9685 16 channel 12 bit PWM controller
 
-const uint8_t NUM_CONFIG = 5; // Number of configuration items
+const uint8_t NUM_CONFIG = 7; // Number of configuration items
 //
 // Configuration array
 //
@@ -401,4 +403,5 @@ uint8_t determine_config()
   }
   return item;
 }
+
 

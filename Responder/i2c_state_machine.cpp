@@ -19,14 +19,15 @@ extern uint8_t TSL2561_state_machine();
 //
 extern void CCS811_init();
 extern uint8_t CCS811_state_machine();
-//extern void send_CCS811(HardwareSerial *);
+//
+extern void PCA9685_init();
 //
 // File contains processing for I2C sensors.
 // Currently the BME280, TSL2561, and CCS811 sensors are supported.
 //
 // Note that since other periodic proceesing may be occuring, the
 // software needs to be written to avoid blocking.  Instead of simple
-// sequential code what waits for I/O to complete before continuing,
+// sequential code that waits for I/O to complete before continuing,
 // a state machine is used.
 //
 // To simplify things and improve encapsulation, each device has its
@@ -42,6 +43,7 @@ static const uint8_t STATE_START = 0;
 static const uint8_t STATE_BME280_STATE_MACHINE = 1;
 static const uint8_t STATE_TSL2561_MACHINE = 2;
 static const uint8_t STATE_CCS811_MACHINE = 3;
+//static const uint8_t STATE_PCA9685_MACHINE;  // No state machine for the PCA9685.
 //
 static uint8_t i2c_state = STATE_START;
 //
@@ -50,9 +52,10 @@ static uint8_t i2c_state = STATE_START;
 static const uint8_t MACHINE_WORKING = 1;
 static const uint8_t MACHINE_DONE = 2;
 //
-bool found_BME280 = false;
+bool found_BME280  = false;
 bool found_TSL2561 = false;
-bool found_CCS811 = false;
+bool found_CCS811  = false;
+bool found_PCA9685 = false;
 //
 // Buffer for i2c data
 //
@@ -110,6 +113,21 @@ void i2c_init()
     else
     {
       Serial.println(F("CCS811 Not found."));
+    }
+  }
+  //
+  // Initialize the PCA9685
+  //
+  PCA9685_init();
+  if (DEBUG)
+  {
+    if (found_PCA9685)
+    {
+      Serial.println(F("PCA9685 Found."));
+    }
+    else
+    {
+      Serial.println(F("PCA9685 Not found."));
     }
   }
 }
@@ -218,4 +236,5 @@ uint8_t i2c_read_pending()
   }
   return bytes_pending;
 }
+
 

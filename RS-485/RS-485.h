@@ -97,16 +97,17 @@ const uint32_t CMD_RESET = 1; // Perform a soft reset
 //
 // Defined message types
 //
-const uint32_t MSG_TYPE_UNKNOWN = 0;  // Undefined or not present.
-const uint32_t MSG_TYPE_EMPTY = 1;    // Everything is OK, but no data to send
-const uint32_t MSG_TYPE_NAK = 2;      // Address not supported
-const uint32_t MSG_TYPE_INFO = 3;     // Address 0 information message
-const uint32_t MSG_TYPE_BME280 = 4;   // BME280 sensor values
-const uint32_t MSG_TYPE_DISCRETE = 5; // Discretes
-const uint32_t MSG_TYPE_ANALOG = 6;   // Analog values
-const uint32_t MSG_TYPE_VERSION = 7;  // Version/Software ID
-const uint32_t MSG_TYPE_CCS811 = 8;   // CCS811 sensor values
-const uint32_t MSG_TYPE_TSL2561 = 9;  // TSL2651 sensor values
+const uint32_t MSG_TYPE_UNKNOWN  =  0; // Undefined or not present.
+const uint32_t MSG_TYPE_EMPTY    =  1; // Everything is OK, but no data to send
+const uint32_t MSG_TYPE_NAK      =  2; // Address not supported
+const uint32_t MSG_TYPE_INFO     =  3; // Address 0 information message
+const uint32_t MSG_TYPE_BME280   =  4; // BME280 sensor values
+const uint32_t MSG_TYPE_DISCRETE =  5; // Discretes
+const uint32_t MSG_TYPE_ANALOG   =  6; // Analog values
+const uint32_t MSG_TYPE_VERSION  =  7; // Version/Software ID
+const uint32_t MSG_TYPE_CCS811   =  8; // CCS811 sensor values
+const uint32_t MSG_TYPE_TSL2561  =  9; // TSL2651 sensor values
+const uint32_t MSG_TYPE_PCA9685  = 10; // PCA9685 PWM values
 //
 const uint32_t DISCRETE_UNKNOWN = 0; // Unknown discrete type
 const uint32_t DISCRETE_CMD = 1;     // Command discretes from controller

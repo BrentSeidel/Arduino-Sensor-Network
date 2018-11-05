@@ -470,3 +470,4 @@ static unsigned int CalculateLux(unsigned int iGain, unsigned int tInt, unsigned
   return(lux);
 }
 
+
