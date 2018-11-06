@@ -113,4 +113,9 @@ private
    --  Provide an XML version of the TSL2561 message
    --
    procedure xml_tsl2561_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record);
+   --
+   --  Provide an XML version of the PCA9685 message
+   --
+   procedure xml_pca9685_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record);
 end;
+

@@ -27,18 +27,28 @@ th
 
 td.set
 {
-  background-color : Green
+  background-color : Green;
 }
 
 td.clear
 {
-  background-color : Red
+  background-color : Red;
 }
 
 td.container
 {
   text-align: Center;
   border: 0px none White;
+}
+
+td.used
+{
+  background-color : White;
+}
+
+td.unused
+{
+  background-color : Grey;
 }
 
 .padded

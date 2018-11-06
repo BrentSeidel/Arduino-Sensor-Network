@@ -235,6 +235,19 @@ function dispDevData(xml)
   {
     document.getElementById("TSL2561").style.display = "none";
   }
+  //
+  // PCA9685
+  //
+  temp = xmlDoc.getElementsByTagName("pca9685");
+  if (temp.length > 0)
+  {
+    add_PCA9685(temp[0].childNodes);
+    document.getElementById("PCA9685").style.display = "block";
+  }
+  else
+  {
+    document.getElementById("PCA9685").style.display = "none";
+  }
 }
 //
 // Helper functions to display specific kinds of data.
@@ -540,5 +553,50 @@ function add_TSL2561(nodeList)
   document.getElementById("TSL2561-Data0").className = td_class;
   document.getElementById("TSL2561-Data1").className = td_class;
   document.getElementById("TSL2561-Lux").className = td_class;
+  return;
+}
+
+function add_PCA9685(nodeList)
+{
+  var x;
+  var node;
+  var channels = [];
+  var validity;
+  var age;
+  var elements;
+
+  //
+  // Yes, this is a "for-case" type structure.  It's done this way because it's
+  // possible that the order of the nodes may change.
+  //
+  for (x = 0; x < nodeList.length; x++)
+  {
+    node = nodeList[x];
+    switch (node.nodeName)
+    {
+      case "validity":
+        validity = node.childNodes[0].nodeValue;
+        break;
+      case "aging":
+        age = parseFloat(node.childNodes[0].nodeValue);
+        break;
+      case "channel":
+        channels.push(node.childNodes[0].nodeValue);
+        break;
+    }
+  }
+  for (x = 0; x < channels.length; x++)
+  {
+    elements = channels[x].split(", ");
+    if (elements[0] == "FALSE")
+    {
+      document.getElementById("PCA9685-" + x).className = "unused";
+    }
+    else
+    {
+      document.getElementById("PCA9685-" + x).className = "used";
+    }
+    document.getElementById("PCA9685-" + x).innerHTML = elements[1] + "/" + elements[2];
+  }
   return;
 }

@@ -227,6 +227,8 @@ package body rs485 is
                   temp_rec := parse_msg_CCS811(data_buffer);
                when MSG_TYPE_TSL2561 =>
                   temp_rec := parse_msg_TSL2561(data_buffer);
+               when MSG_TYPE_PCA9685 =>
+                  temp_rec := parse_msg_PCA9685(data_buffer);
                when others =>
                   temp_rec := parse_msg_unknown(data_buffer);
             end case;
@@ -370,6 +372,23 @@ package body rs485 is
               TSL2561_data0 => d(2),
               TSL2561_data1 => d(3),
               TSL2561_lux => d(4));
+   end;
+
+   function parse_msg_PCA9685(d : data_buffer_type) return data_record is
+      temp : data_record := (validity => code_to_validity(d(0)), aging => Ada.Calendar.Clock,
+                             message => MSG_TYPE_PCA9685, PCA9685_set => (others => False),
+                             PCA9685_on => (others => 0), PCA9685_off => (others => 0));
+   begin
+      for i in temp.PCA9685_set'Range loop
+         temp.PCA9685_off(i) := BBS.embed.uint12(d(i + 1) and 16#0FFF#);
+         temp.PCA9685_on(i)  := BBS.embed.uint12((d(i + 1)/16#1000#) and 16#0FFF#);
+         if ((d(i + 1)/16#1_000_000#) and 16#1#) = 0 then
+            temp.PCA9685_set(i) := False;
+         else
+            temp.PCA9685_set(i) := True;
+         end if;
+      end loop;
+      return temp;
    end;
 
    function parse_msg_unknown(d : data_buffer_type) return data_record is

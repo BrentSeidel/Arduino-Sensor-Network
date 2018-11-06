@@ -19,7 +19,7 @@ package rs485 is
    type message_types is (MSG_TYPE_UNKNOWN, MSG_TYPE_EMPTY, MSG_TYPE_NAK,
                           MSG_TYPE_INFO,  MSG_TYPE_BME280,  MSG_TYPE_DISCRETE,
                           MSG_TYPE_ANALOG, MSG_TYPE_VERSION, MSG_TYPE_CCS811,
-                          MSG_TYPE_TSL2561);
+                          MSG_TYPE_TSL2561, MSG_TYPE_PCA9685);
 
    --
    --  Validity code for messages from the RS-485 data bus.  Anything other than
@@ -29,11 +29,12 @@ package rs485 is
                          DATA_NO_COMPUTED, DATA_INVALID);
 
    --
-   --  Data type for array of analog values.  This is used because a defined data
-   --  type is required as an array component.  You can't just use an anonymous
-   --  array.
+   --  Data type for arrays.  This is used because a defined data type is required
+   --  as an array component.  You can't just use an anonymous array.
    --
    type an_data_type is array (1 .. 31) of BBS.embed.uint32;
+   type arr_16bool is array (0 .. 15) of Boolean;
+   type arr_16uint12 is array (0 .. 15) of BBS.embed.uint12;
    --
    --  Data record is a variant record that should support all types of data.
    --  The received message is translated into the appropriate variant of this
@@ -73,6 +74,10 @@ package rs485 is
                TSL2561_data0 :  BBS.embed.uint32;
                TSL2561_data1 :  BBS.embed.uint32;
                TSL2561_lux :  BBS.embed.uint32;
+            when MSG_TYPE_PCA9685 =>
+               PCA9685_set : arr_16bool;
+               PCA9685_on  : arr_16uint12;
+               PCA9685_off : arr_16uint12;
             when others =>
                null;
          end case;
@@ -87,10 +92,6 @@ package rs485 is
      (Index_Type   => Natural,
       Element_Type => data_record);
 
---   package data_vect is new Ada.Containers.Vectors
---     (Index_Type   => Natural,
---      Element_Type => device_vect.Vector,
---     "=" => device_vect."=");
    --
    --  Record for containing device information
    --
@@ -227,6 +228,7 @@ private
    function parse_msg_BME280(d : data_buffer_type) return data_record;
    function parse_msg_CCS811(d : data_buffer_type) return data_record;
    function parse_msg_TSL2561(d : data_buffer_type) return data_record;
+   function parse_msg_PCA9685(d : data_buffer_type) return data_record;
    function parse_msg_unknown(d : data_buffer_type) return data_record;
 
 end;

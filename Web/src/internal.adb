@@ -264,6 +264,8 @@ package body internal is
                      xml_ccs811_msg(s, t);
                   when rs485.MSG_TYPE_TSL2561 =>
                      xml_tsl2561_msg(s, t);
+                  when rs485.MSG_TYPE_PCA9685 =>
+                     xml_pca9685_msg(s, t);
                   when others =>
                      String'Write(s, "<error>Unknown record type</error>");
                end case;
@@ -354,7 +356,6 @@ package body internal is
    procedure xml_tsl2561_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
       now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
    begin
-      null;
       String'Write(s, "<tsl2561><validity>" & rs485.msg_validity'Image(d.validity) &
                      "</validity><aging>" & Duration'Image(now - d.aging) &
                      "</aging><tsl2561_status>" & rs485.msg_validity'Image(d.TSL2561_status) &
@@ -364,6 +365,22 @@ package body internal is
                      "</tsl2561_data1><tsl2561_lux>" & Integer'Image(Integer(d.TSL2561_lux)) &
                      "</tsl2561_lux></tsl2561>");
    end xml_tsl2561_msg;
+   --
+   --  Provide an XML version of the PCA9685 message
+   --
+   procedure xml_pca9685_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+      now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
+   begin
+      String'Write(s, "<pca9685><validity>" & rs485.msg_validity'Image(d.validity) &
+                     "</validity><aging>" & Duration'Image(now - d.aging) &
+                     "</aging>");
+      for i in d.PCA9685_set'Range loop
+         String'Write(s, "<channel>" & Boolean'Image(d.PCA9685_set(i)) & "," &
+                        BBS.embed.uint12'Image(d.PCA9685_on(i)) & "," &
+                        BBS.embed.uint12'Image(d.PCA9685_off(i)) & "</channel>");
+      end loop;
+      String'Write(s, "</pca9685>");
+   end xml_pca9685_msg;
    --
    --  Request to send a command.
    --
