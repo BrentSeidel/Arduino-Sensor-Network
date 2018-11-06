@@ -94,6 +94,7 @@ extern uint8_t buffer_ptr;
 //
 const uint32_t CMD_READ  = 0; // The default command
 const uint32_t CMD_RESET = 1; // Perform a soft reset
+const uint32_t CMD_WRITE = 2; // Write value to specified location
 //
 // Defined message types
 //

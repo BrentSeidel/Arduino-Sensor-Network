@@ -134,6 +134,10 @@ const uint8_t TX_RX = 5; // Pin 5 is used to control direction.
 extern void send_BME280(HardwareSerial *);
 extern void send_TSL2561(HardwareSerial *);
 extern void send_CCS811(HardwareSerial *);
+extern void send_PCA9685(HardwareSerial *);
+//
+extern uint8_t PCA9685_set_chan(uint8_t chan, uint16_t on, uint16_t off);
+
 //
 // Sample discrete value
 //
@@ -252,7 +256,13 @@ void loop()
               Serial.println(address, DEC);
             }
             softReset();
-//            rs485_msg_nak(rs485, DEVICE_ID, address);
+            break;
+          case CMD_WRITE:
+#if DEVICE_ID == 4
+            PCA9685_set_chan((uint8_t)(cmd_arg & 0xF0000) >> 16, (uint16_t)0, (uint16_t)(cmd_arg & 0xFFF));
+#else
+            rs485_msg_nak(rs485, DEVICE_ID, address);
+#endif
             break;
           default:
             if (DEBUG)
@@ -347,6 +357,8 @@ void determine_transmission(uint8_t value)
     case CONFIG_CCS811:
       send_CCS811(rs485);
       break;
+    case CONFIG_PCA9685:
+      send_PCA9685(rs485);
     default: // Some other unknown value
       rs485_msg_nak(rs485, DEVICE_ID, address);
       break;
@@ -389,6 +401,11 @@ uint8_t determine_config()
   if (found_CCS811)
   {
     config_array[item] = CONFIG_CCS811;
+    item++;
+  }
+  if (found_PCA9685)
+  {
+    config_array[item] = CONFIG_PCA9685;
     item++;
   }
   if (DEBUG)

@@ -46,9 +46,6 @@ extern uint8_t i2c_buffer[BUFFER_SIZE];
 extern uint8_t buff_ptr;
 extern uint8_t bytes_pending;
 extern uint32_t end_time;
-
-extern uint8_t i2c_start_read(uint8_t device, uint8_t reg, uint8_t bytes);
-extern uint8_t i2c_read_pending();
 //
 extern bool found_PCA9685;
 
@@ -57,7 +54,6 @@ extern bool found_PCA9685;
 //
 static uint16_t PCA9685_servos[16];
 static boolean PCA9685_set[16];
-static uint8_t PCA9685_status = DATA_INIT;
 //
 static const uint8_t ADDR_PCA9685 = 0x40; // Could also be 0x41, 0x42, or 0x43
 //
@@ -102,6 +98,11 @@ void PCA9685_init()
   Wire.write(MODE1);
   Wire.write(PCA9685_SLEEP);
   success = Wire.endTransmission();
+  if (DEBUG)
+  {
+    Serial.print(F("Result from putting PCA9685 to sleep "));
+    Serial.println(success, DEC);
+  }
   if (success == 0)
   {
     found_PCA9685 = true;
@@ -109,13 +110,17 @@ void PCA9685_init()
   else
   {
     found_PCA9685 = false;
-    PCA9685_status = DATA_SENSOR;
     return;
   }
   Wire.beginTransmission(ADDR_PCA9685);
   Wire.write(PRESCALE);
   Wire.write(0x1E);
   success = Wire.endTransmission();
+  if (DEBUG)
+  {
+    Serial.print(F("Result from setting PCA9685 prescale "));
+    Serial.println(success, DEC);
+  }
   if (success == 0)
   {
     found_PCA9685 = true;
@@ -123,13 +128,17 @@ void PCA9685_init()
   else
   {
     found_PCA9685 = false;
-    PCA9685_status = DATA_SENSOR;
     return;
   }
   Wire.beginTransmission(ADDR_PCA9685);
   Wire.write(MODE1);
   Wire.write(PCA9685_AI); // Set auto-increment
   success = Wire.endTransmission();
+  if (DEBUG)
+  {
+    Serial.print(F("Result from setting PCA9685 auto-increment "));
+    Serial.println(success, DEC);
+  }
   if (success == 0)
   {
     found_PCA9685 = true;
@@ -137,8 +146,6 @@ void PCA9685_init()
   else
   {
     found_PCA9685 = false;
-    PCA9685_status = DATA_SENSOR;
-    return;
   }
 }
 //
@@ -161,7 +168,6 @@ void send_PCA9685(HardwareSerial *rs485)
     rs485->print(PCA9685_servos[x] + (PCA9685_set[x] ? 1 : 0) << 16, HEX);
   }
   rs485->println("%FF");
-  PCA9685_status = DATA_STALE;
 }
 //
 // Set channel values
@@ -177,6 +183,11 @@ uint8_t PCA9685_set_chan(uint8_t chan, uint16_t on, uint16_t off)
   {
     return -1;
   }
+  //
+  // Save values and send to PCA9685
+  //
+  PCA9685_set[chan] = true;
+  PCA9685_servos[chan] = (off - on);
   Wire.beginTransmission(ADDR_PCA9685);
   Wire.write(chan*4 + PCA9685_CH);
   Wire.write(on & 0xFF);  // ON_L
