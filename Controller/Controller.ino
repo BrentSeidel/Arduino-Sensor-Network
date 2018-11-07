@@ -367,11 +367,11 @@ uint8_t read_cmd()
         }
         break;
       case CMD_STATE_GET_CMD:
-        Serial.println("State get command.");
+//        Serial.println("State get command.");
         temp = get_hex_digit(data);
         if (temp >= 0)
         {
-          cmd_data.cmd = cmd_data.cmd*10 + temp;
+          cmd_data.cmd = cmd_data.cmd*0x10 + temp;
         }
         else
         {
@@ -394,11 +394,11 @@ uint8_t read_cmd()
         }
         break;
       case CMD_STATE_GET_NODE:
-        Serial.println("State get node.");
+//        Serial.println("State get node.");
         temp = get_hex_digit(data);
         if (temp >= 0)
         {
-          cmd_data.node = cmd_data.node*10 + temp;
+          cmd_data.node = cmd_data.node*0x10 + temp;
         }
         else
         {
@@ -417,11 +417,11 @@ uint8_t read_cmd()
         }
         break;
       case CMD_STATE_GET_ARG:
-        Serial.println("State get arg.");
+//        Serial.println("State get arg.");
         temp = get_hex_digit(data);
         if (temp >= 0)
         {
-          cmd_data.args = cmd_data.args*10 + temp;
+          cmd_data.args = cmd_data.args*0x10 + temp;
         }
         else
         {
@@ -436,7 +436,7 @@ uint8_t read_cmd()
         }
         break;
       case CMD_STATE_DONE:
-        Serial.println("State done.");
+//        Serial.println("State done.");
         cmd_data.state = CMD_STATE_START;
         if (cmd_data.directed)
         {
