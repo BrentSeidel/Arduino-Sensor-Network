@@ -66,6 +66,9 @@ package body rs485 is
          activity_counter := activity_counter + 1;
          if (debug_char.get) then
             Ada.Text_IO.Put(buff);
+            if (buff = CR) then
+               Ada.Text_IO.New_Line;
+            end if;
          end if;
          --
          -- RS 485 state machine
@@ -375,14 +378,14 @@ package body rs485 is
    end;
 
    function parse_msg_PCA9685(d : data_buffer_type) return data_record is
-      temp : data_record := (validity => code_to_validity(d(0)), aging => Ada.Calendar.Clock,
+      temp : data_record := (validity => DATA_VALID, aging => Ada.Calendar.Clock,
                              message => MSG_TYPE_PCA9685, PCA9685_set => (others => False),
                              PCA9685_on => (others => 0), PCA9685_off => (others => 0));
    begin
       for i in temp.PCA9685_set'Range loop
-         temp.PCA9685_off(i) := BBS.embed.uint12(d(i + 1) and 16#0FFF#);
-         temp.PCA9685_on(i)  := BBS.embed.uint12((d(i + 1)/16#1000#) and 16#0FFF#);
-         if ((d(i + 1)/16#1_000_000#) and 16#1#) = 0 then
+         temp.PCA9685_off(i) := BBS.embed.uint12(d(i) and 16#0FFF#);
+         temp.PCA9685_on(i)  := BBS.embed.uint12((d(i)/16#1000#) and 16#0FFF#);
+         if ((d(i)/16#1_000_000#) and 16#1#) = 0 then
             temp.PCA9685_set(i) := False;
          else
             temp.PCA9685_set(i) := True;
@@ -497,7 +500,7 @@ package body rs485 is
          exit when exit_flag;
          select
             accept stop do
-              Ada.Text_IO.Put_Line("RS-485 command stop during looping.");
+               Ada.Text_IO.Put_Line("RS-485 command stop during looping.");
                exit_flag := True;
             end stop;
          or
