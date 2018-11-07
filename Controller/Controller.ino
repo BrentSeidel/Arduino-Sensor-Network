@@ -26,6 +26,9 @@ const int TX_RX = 2; // Pin 2 is used to control direction.
 const int CMD_PIN = 23; // Set high while a command is being sent
 const int MSG_PIN = 22; // Set high while a message is being sent
 //
+extern int get_hex_digit(int data);
+
+//
 // States
 // 0 - Sending command
 // 1 - Waiting for transmission to complete
@@ -205,8 +208,8 @@ void loop()
       {
         if (directed_cmd[node_id].cmd == CMD_READ)
         {
-          Serial.print("Requesting read of node ");
-          Serial.println(node_id, DEC);
+//          Serial.print("Requesting read of node ");
+//          Serial.println(node_id, DEC);
           digitalWrite(CMD_PIN, HIGH);
           rs485->print("@");
           rs485->print(node_id, HEX);
@@ -293,11 +296,16 @@ void loop()
       break;
   }
 }
-
+//
+// This function processes commands received from the web gateway unit.  Two types of commands
+// are available - general commands and directed commands.  General commands apply to all units
+// on the network.  Directed commands are directed towards one particular node.
+//
 uint8_t read_cmd()
 {
   int data = Serial2.read();
   uint8_t command = CMD_NULL;
+  int     temp;
 
   if (data > 0)
   {
@@ -359,10 +367,11 @@ uint8_t read_cmd()
         }
         break;
       case CMD_STATE_GET_CMD:
-//        Serial.println("State get command.");
-        if ((data >= '0') && (data <= '9'))
+        Serial.println("State get command.");
+        temp = get_hex_digit(data);
+        if (temp >= 0)
         {
-          cmd_data.cmd = cmd_data.cmd*10 + (data - '0');
+          cmd_data.cmd = cmd_data.cmd*10 + temp;
         }
         else
         {
@@ -385,10 +394,11 @@ uint8_t read_cmd()
         }
         break;
       case CMD_STATE_GET_NODE:
-//        Serial.println("State get node.");
-        if ((data >= '0') && (data <= '9'))
+        Serial.println("State get node.");
+        temp = get_hex_digit(data);
+        if (temp >= 0)
         {
-          cmd_data.node = cmd_data.node*10 + (data - '0');
+          cmd_data.node = cmd_data.node*10 + temp;
         }
         else
         {
@@ -407,10 +417,11 @@ uint8_t read_cmd()
         }
         break;
       case CMD_STATE_GET_ARG:
-//        Serial.println("State get arg.");
-        if ((data >= '0') && (data <= '9'))
+        Serial.println("State get arg.");
+        temp = get_hex_digit(data);
+        if (temp >= 0)
         {
-          cmd_data.args = cmd_data.args*10 + (data - '0');
+          cmd_data.args = cmd_data.args*10 + temp;
         }
         else
         {
@@ -423,11 +434,9 @@ uint8_t read_cmd()
             cmd_data.state = CMD_STATE_START;
           }
         }
-
-        cmd_data.state = CMD_STATE_DONE;
         break;
       case CMD_STATE_DONE:
-//        Serial.println("State done.");
+        Serial.println("State done.");
         cmd_data.state = CMD_STATE_START;
         if (cmd_data.directed)
         {

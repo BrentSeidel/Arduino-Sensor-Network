@@ -43,18 +43,7 @@ void softReset()
   asm volatile("jmp 0");
 }
 //
-// Utility functions to support the state machine.  These should not be
-// used by other software.
-//
-static void state_wait_for_lf(int data, uint8_t *state, uint8_t state_value)
-{
-  if (data == '\n')
-  {
-    *state = state_value;
-  }
-}
-//
-static int get_hex_digit(int data)
+int get_hex_digit(int data)
 {
   switch (data)
   {
@@ -97,6 +86,17 @@ static int get_hex_digit(int data)
     default: // Any other character
       return -1;
       break;
+  }
+}
+//
+// Utility functions to support the state machine.  These should not be
+// used by other software.
+//
+static void state_wait_for_lf(int data, uint8_t *state, uint8_t state_value)
+{
+  if (data == '\n')
+  {
+    *state = state_value;
   }
 }
 //
@@ -319,7 +319,7 @@ uint8_t rs485_state_machine(HardwareSerial *rs485, HardwareSerial *dbg_port, boo
           case 0: // No data
             break;
           case '&': // Command code is followed by an argument value
-            rs485_state = STATE_GET_CMD_CMD;
+            rs485_state = STATE_GET_CMD_ARG;
             break;
           default:  // Any other character is an error so restart the state machine
             rs485_state = STATE_START;
@@ -330,7 +330,6 @@ uint8_t rs485_state_machine(HardwareSerial *rs485, HardwareSerial *dbg_port, boo
 	  {
         cmd_cmd = (cmd_cmd << 4) + temp;
 	  }
-	  rs485_state = STATE_WAIT_CMD_LF;
 	  break;
 	case STATE_GET_CMD_ARG:
       temp = get_hex_digit(data);

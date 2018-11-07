@@ -259,7 +259,14 @@ void loop()
             break;
           case CMD_WRITE:
 #if DEVICE_ID == 4
-            PCA9685_set_chan((uint8_t)(cmd_arg & 0xF0000) >> 16, (uint16_t)0, (uint16_t)(cmd_arg & 0xFFF));
+            if (DEBUG)
+            {
+              Serial.print("Got write command with arg ");
+              Serial.println(cmd_arg, HEX);
+            }
+            PCA9685_set_chan((uint8_t)((cmd_arg >> 24) & 0xF),
+                             (uint16_t)((cmd_arg >> 12) & 0xFFF),
+                             (uint16_t)(cmd_arg & 0xFFF));
 #else
             rs485_msg_nak(rs485, DEVICE_ID, address);
 #endif

@@ -52,8 +52,7 @@ extern bool found_PCA9685;
 //
 // Values for PCA9685 PWM controller
 //
-static uint16_t PCA9685_servos[16];
-static boolean PCA9685_set[16];
+static uint32_t PCA9685_servos[16];
 //
 static const uint8_t ADDR_PCA9685 = 0x40; // Could also be 0x41, 0x42, or 0x43
 //
@@ -165,7 +164,7 @@ void send_PCA9685(HardwareSerial *rs485)
   for (x = 0; x < 16; x++)
   {
     rs485->print("&");
-    rs485->print(PCA9685_servos[x] + (PCA9685_set[x] ? 1 : 0) << 16, HEX);
+      rs485->print(PCA9685_servos[x], HEX);
   }
   rs485->println("%FF");
 }
@@ -179,6 +178,15 @@ uint8_t PCA9685_set_chan(uint8_t chan, uint16_t on, uint16_t off)
   //
   // Check for channel in range
   //
+  if (DEBUG)
+  {
+    Serial.print("PCA9685 channel ");
+    Serial.print(chan, DEC);
+    Serial.print(", on ");
+    Serial.print(on, HEX);
+    Serial.print(", off ");
+    Serial.println(off, HEX);
+  }
   if ((chan < 0) || (chan > 15))
   {
     return -1;
@@ -186,8 +194,12 @@ uint8_t PCA9685_set_chan(uint8_t chan, uint16_t on, uint16_t off)
   //
   // Save values and send to PCA9685
   //
-  PCA9685_set[chan] = true;
-  PCA9685_servos[chan] = (off - on);
+  PCA9685_servos[chan] = 0x1000000 + ((uint32_t)on << 12) + off;
+  if (DEBUG)
+  {
+    Serial.print("Servo array set to ");
+    Serial.println(PCA9685_servos[chan], HEX);
+  }
   Wire.beginTransmission(ADDR_PCA9685);
   Wire.write(chan*4 + PCA9685_CH);
   Wire.write(on & 0xFF);  // ON_L
