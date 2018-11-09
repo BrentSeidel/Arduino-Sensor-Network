@@ -1,25 +1,26 @@
 with Ada.Text_IO;
 with Ada.Exceptions;
+with database;
 package body rs485 is
    --
    -- Function to convert numeric code to validity
    --
-   function code_to_validity(c : BBS.embed.uint32) return msg_validity is
-      t : msg_validity;
+   function code_to_validity(c : BBS.embed.uint32) return common.msg_validity is
+      t : common.msg_validity;
    begin
       case c is
          when 0 =>
-            t := DATA_VALID;
+            t := common.DATA_VALID;
          when 1 =>
-            t := DATA_STALE;
+            t := common.DATA_STALE;
          when 2 =>
-            t := DATA_INIT;
+            t := common.DATA_INIT;
          when 3 =>
-            t := DATA_SENSOR;
+            t := common.DATA_SENSOR;
          when 4 =>
-            t := DATA_NO_COMPUTED;
+            t := common.DATA_NO_COMPUTED;
          when others =>
-            t := DATA_INVALID;
+            t := common.DATA_INVALID;
       end case;
       return t;
    end;
@@ -32,14 +33,14 @@ package body rs485 is
       data_file : Ada.Text_IO.File_Type;
       rs485_state : states := STATE_START;
       status : statuses;
-      data_type : message_types;
+      data_type : common.message_types;
       data_type_int : BBS.embed.uint32;
       device : BBS.embed.uint32;
       address : BBS.embed.uint32;
       data_buffer : data_buffer_type;
       buff_ptr : Integer := 0;
       t : BBS.embed.int8;
-      temp_rec : data_record;
+      temp_rec : common.data_record;
       exit_flag : Boolean := false;
    begin
       --
@@ -53,6 +54,7 @@ package body rs485 is
                    Name => rs485_port,
                    form => "SHARED=YES");
       Ada.Text_IO.Put_Line("Opened input file.");
+--      database.init(database.None);
       loop
          select
             accept stop  do
@@ -97,7 +99,7 @@ package body rs485 is
             when STATE_GET_MSG_ADDR =>
                if (buff = '/') then
                   rs485_state := STATE_GET_MSG_TYPE;
-                  data_type := MSG_TYPE_UNKNOWN;
+                  data_type := common.MSG_TYPE_UNKNOWN;
                   data_type_int := 0;
                elsif (buff = '&') then
                   rs485_state := STATE_START_BUFFER;
@@ -209,7 +211,7 @@ package body rs485 is
                                       ", address " & Integer'Image(Integer(address)));
             end if;
          elsif (status = STATE_RS485_GOT_MSG) then
-            data_type := message_types'Val(Integer(data_type_int));
+            data_type := common.message_types'Val(Integer(data_type_int));
             if (debug_msg.get) then
                Ada.Text_IO.Put_Line("Got message from device " & Integer'Image(Integer(device)) &
                                       ", address " & Integer'Image(Integer(address)));
@@ -218,33 +220,36 @@ package body rs485 is
             --  Decode the message
             --
             case data_type is
-               when MSG_TYPE_INFO =>
+               when common.MSG_TYPE_INFO =>
                   temp_rec := parse_msg_info(data_buffer);
-               when MSG_TYPE_DISCRETE =>
+               when common.MSG_TYPE_DISCRETE =>
                   temp_rec := parse_msg_discrete(data_buffer);
-               when MSG_TYPE_ANALOG =>
+               when common.MSG_TYPE_ANALOG =>
                   temp_rec := parse_msg_analog(data_buffer);
-               when MSG_TYPE_BME280 =>
+               when common.MSG_TYPE_BME280 =>
                   temp_rec := parse_msg_BME280(data_buffer);
-               when MSG_TYPE_CCS811 =>
+               when common.MSG_TYPE_CCS811 =>
                   temp_rec := parse_msg_CCS811(data_buffer);
-               when MSG_TYPE_TSL2561 =>
+               when common.MSG_TYPE_TSL2561 =>
                   temp_rec := parse_msg_TSL2561(data_buffer);
-               when MSG_TYPE_PCA9685 =>
+               when common.MSG_TYPE_PCA9685 =>
                   temp_rec := parse_msg_PCA9685(data_buffer);
                when others =>
                   temp_rec := parse_msg_unknown(data_buffer);
             end case;
             data_store.update_data_store(temp_rec, device, address);
+            database.log(Integer(device), temp_rec);
          end if;
       end loop;
       Ada.Text_IO.Put_Line("Shutting down RS-485 state machine.");
       Ada.Text_IO.Close(data_file);
+--      database.end_log;
    exception
       when error: others =>
          Ada.Text_IO.Put_Line("Exception occured in RS-485 state machine.  Exiting.");
          Ada.Text_IO.Put_Line(Ada.Exceptions.Exception_Information(error));
          Ada.Text_IO.Close(data_file);
+--         database.end_log;
          failed_state.set;
    end state_machine;
 
@@ -297,7 +302,7 @@ package body rs485 is
       return n;
    end;
 
-   function parse_msg_info(d : data_buffer_type) return data_record is
+   function parse_msg_info(d : data_buffer_type) return common.data_record is
       t : String(1..32);
       temp : BBS.embed.uint32;
       b1 : Integer;
@@ -320,14 +325,14 @@ package body rs485 is
          t(i*4 + 3) := Character'Val(b3);
          t(i*4 + 4) := Character'Val(b4);
       end loop;
-      return (validity => DATA_VALID, aging => Ada.Calendar.Clock,
-              message => MSG_TYPE_INFO, num_addr => d(0), name => t);
+      return (validity => common.DATA_VALID, aging => Ada.Calendar.Clock,
+              message => common.MSG_TYPE_INFO, num_addr => d(0), name => t);
    end;
 
-   function parse_msg_BME280(d : data_buffer_type) return data_record is
+   function parse_msg_BME280(d : data_buffer_type) return common.data_record is
    begin
       return (validity => code_to_validity(d(0)), aging => Ada.Calendar.Clock,
-              message => MSG_TYPE_BME280,
+              message => common.MSG_TYPE_BME280,
               BME280_status => code_to_validity(d(0)),
               BME280_age => d(1),
               BME280_temp_c => Float(d(2)*5+128)/25600.0,
@@ -335,19 +340,19 @@ package body rs485 is
               BME280_humidity => Float(d(4))/1024.0);
    end;
 
-   function parse_msg_discrete(d : data_buffer_type) return data_record is
+   function parse_msg_discrete(d : data_buffer_type) return common.data_record is
    begin
-      return (validity => DATA_VALID, aging => Ada.Calendar.Clock,
-              message => MSG_TYPE_DISCRETE,
+      return (validity => common.DATA_VALID, aging => Ada.Calendar.Clock,
+              message => common.MSG_TYPE_DISCRETE,
               disc_type => d(0),
               disc_value => d(1));
    end;
 
-   function parse_msg_analog(d : data_buffer_type) return data_record is
+   function parse_msg_analog(d : data_buffer_type) return common.data_record is
       an_type : BBS.embed.uint32 := d(0) and 16#ffffffe0#;
       an_count : BBS.embed.uint32 := d(0) and 16#1f#;
-      temp : data_record := (validity => DATA_VALID, aging => Ada.Calendar.Clock,
-                             message => MSG_TYPE_ANALOG, an_type => an_type,
+      temp : common.data_record := (validity => common.DATA_VALID, aging => Ada.Calendar.Clock,
+                             message => common.MSG_TYPE_ANALOG, an_type => an_type,
                              an_count => an_count, an_data => (others => 0));
    begin
       for i in Integer range 1 .. Integer(an_count) loop
@@ -356,20 +361,20 @@ package body rs485 is
       return temp;
    end;
    --
-   function parse_msg_CCS811(d : data_buffer_type) return data_record is
+   function parse_msg_CCS811(d : data_buffer_type) return common.data_record is
    begin
       return (validity => code_to_validity(d(0)), aging => Ada.Calendar.Clock,
-              message => MSG_TYPE_CCS811,
+              message => common.MSG_TYPE_CCS811,
               CCS811_status => code_to_validity(d(0)),
               CCS811_age => d(1),
               CCS811_eCO2 => d(2),
               CCS811_TVOC => d(3));
    end;
 
-   function parse_msg_TSL2561(d : data_buffer_type) return data_record is
+   function parse_msg_TSL2561(d : data_buffer_type) return common.data_record is
    begin
       return (validity => code_to_validity(d(0)), aging => Ada.Calendar.Clock,
-              message => MSG_TYPE_TSL2561,
+              message => common.MSG_TYPE_TSL2561,
               TSL2561_status => code_to_validity(d(0)),
               TSL2561_age => d(1),
               TSL2561_data0 => d(2),
@@ -377,9 +382,9 @@ package body rs485 is
               TSL2561_lux => d(4));
    end;
 
-   function parse_msg_PCA9685(d : data_buffer_type) return data_record is
-      temp : data_record := (validity => DATA_VALID, aging => Ada.Calendar.Clock,
-                             message => MSG_TYPE_PCA9685, PCA9685_set => (others => False),
+   function parse_msg_PCA9685(d : data_buffer_type) return common.data_record is
+      temp : common.data_record := (validity => common.DATA_VALID, aging => Ada.Calendar.Clock,
+                             message => common.MSG_TYPE_PCA9685, PCA9685_set => (others => False),
                              PCA9685_on => (others => 0), PCA9685_off => (others => 0));
    begin
       for i in temp.PCA9685_set'Range loop
@@ -394,10 +399,10 @@ package body rs485 is
       return temp;
    end;
 
-   function parse_msg_unknown(d : data_buffer_type) return data_record is
+   function parse_msg_unknown(d : data_buffer_type) return common.data_record is
    begin
-      return (validity => DATA_VALID, aging => Ada.Calendar.Clock,
-              message => MSG_TYPE_UNKNOWN);
+      return (validity => common.DATA_VALID, aging => Ada.Calendar.Clock,
+              message => common.MSG_TYPE_UNKNOWN);
    end;
 
    --
@@ -415,7 +420,7 @@ package body rs485 is
       -- nevers shows up again.  This should only be called in the RS485 package
       -- from the state_machine task.
       --
-      procedure update_data_store(data_in : data_record; dev : BBS.embed.uint32;
+      procedure update_data_store(data_in : common.data_record; dev : BBS.embed.uint32;
                                   addr : BBS.embed.uint32) is
          d : Natural := Natural(dev);
          a : Natural := Natural(addr);
@@ -435,14 +440,14 @@ package body rs485 is
          --
          rec := data.Element(d);
          rec.last_age := Ada.Calendar.Clock;
-         if (data_in.message = MSG_TYPE_INFO) then
+         if (data_in.message = common.MSG_TYPE_INFO) then
             rec.info_age := Ada.Calendar.Clock;
             rec.num_addr := data_in.num_addr;
             rec.name := data_in.name;
          end if;
          while (rec.messages.Length <= Ada.Containers.Count_Type(a)) loop
-            rec.messages.Append((Validity => DATA_VALID, aging => Ada.Calendar.Clock,
-                      message => MSG_TYPE_UNKNOWN));
+            rec.messages.Append((Validity => common.DATA_VALID, aging => Ada.Calendar.Clock,
+                      message => common.MSG_TYPE_UNKNOWN));
          end loop;
          rec.messages.Replace_Element(a, data_in);
          data.Replace_Element(d, rec);
@@ -451,7 +456,7 @@ package body rs485 is
       -- Extract an element from the data store.
       --
       function get_element(dev : Natural; addr : Natural)
-                           return data_record is
+                           return common.data_record is
       begin
          return data.Element(dev).messages.Element(addr);
       end;

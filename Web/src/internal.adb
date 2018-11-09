@@ -10,6 +10,8 @@ use type BBS.embed.uint32;
 with bbs.http;
 with bbs.html;
 with bbs.web_server;
+with common;
+with database;
 
 package body internal is
 
@@ -36,7 +38,7 @@ package body internal is
    procedure html_devices(s : GNAT.Sockets.Stream_Access;
                           h : bbs.web_common.params.Map;
                           p : bbs.web_common.params.Map) is
-      t : rs485.data_record;
+      t : common.data_record;
    begin
       bbs.http.ok(s, "text/html");
       bbs.html.html_head(s, "Device list", "Style");
@@ -47,23 +49,23 @@ package body internal is
          for j in Natural range 0 .. Integer(rs485.data_store.get_length(i)) - 1 loop
             t := rs485.data_store.get_element(i, j);
             case t.message is
-               when rs485.MSG_TYPE_INFO =>
+               when common.MSG_TYPE_INFO =>
                   String'Write(s, "<td class=""noborder"">");
                   html_info(s, t);
                   String'Write(s, "</td></tr>" & CRLF);
-               when rs485.MSG_TYPE_BME280 =>
+               when common.MSG_TYPE_BME280 =>
                   String'Write(s, "<td class=""noborder"">");
                   html_bme280(s, t, true);
                   String'Write(s, "</td></tr>" & CRLF);
-               when rs485.MSG_TYPE_DISCRETE =>
+               when common.MSG_TYPE_DISCRETE =>
                   String'Write(s, "<td class=""noborder"">");
                   html_discrete(s, t);
                   String'Write(s, "</td></tr>" & CRLF);
-               when rs485.MSG_TYPE_CCS811 =>
+               when common.MSG_TYPE_CCS811 =>
                   String'Write(s, "<td class=""noborder"">");
                   html_ccs811(s, t);
                   String'Write(s, "</td></tr>" & CRLF);
-               when rs485.MSG_TYPE_TSL2561 =>
+               when common.MSG_TYPE_TSL2561 =>
                   String'Write(s, "<td class=""noborder"">");
                   html_TSL2561(s, t);
                   String'Write(s, "</td></tr>" & CRLF);
@@ -83,7 +85,7 @@ package body internal is
    --
    --  Display an info record as a table that can be nested in another table
    --
-   procedure html_info(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+   procedure html_info(s : GNAT.Sockets.Stream_Access; d : common.data_record) is
    begin
       String'Write(s, "<table><tr><th>Addresses</th>" &
                      "<th>Device Name</th></tr>" & CRLF);
@@ -95,7 +97,7 @@ package body internal is
    --
    --  Display an BME280 record as a table that can be nested in another table
    --
-   procedure html_bme280(s : GNAT.Sockets.Stream_Access; d : rs485.data_record;
+   procedure html_bme280(s : GNAT.Sockets.Stream_Access; d : common.data_record;
                          metric : Boolean) is
       str : String := "     ";
    begin
@@ -125,7 +127,7 @@ package body internal is
    --
    --  Display an discrete record as a table that can be nested in another table
    --
-   procedure html_discrete(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+   procedure html_discrete(s : GNAT.Sockets.Stream_Access; d : common.data_record) is
       t : BBS.embed.uint32 := d.disc_value;
    begin
       String'Write(s, "<table>" & CRLF);
@@ -145,7 +147,7 @@ package body internal is
    --
    --  Display an CCS811 record as a table that can be nested in another table
    --
-   procedure html_ccs811(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+   procedure html_ccs811(s : GNAT.Sockets.Stream_Access; d : common.data_record) is
    begin
       String'Write(s, "<table><tr><th>eCO2</th><th>TVOC</th></tr><tr>" & CRLF);
       String'Write(s, "<td>" & Integer'Image(Integer(d.CCS811_eCO2)) & "</td>");
@@ -155,7 +157,7 @@ package body internal is
    --
    --  Display an TSL2561 record as a table that can be nested in another table
    --
-   procedure html_tsl2561(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+   procedure html_tsl2561(s : GNAT.Sockets.Stream_Access; d : common.data_record) is
    begin
       String'Write(s, "<table><tr><th>Data 0</th><th>Data 1</th>" &
                    "<th>Lux</th></tr><tr>" & CRLF);
@@ -188,7 +190,7 @@ package body internal is
                              p : bbs.web_common.params.Map) is
       dev_id : Integer := 0;
       now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
-      t : rs485.data_record;
+      t : common.data_record;
       rec : rs485.device_record;
    begin
       bbs.http.ok(s, "application/xml");
@@ -206,8 +208,8 @@ package body internal is
             rec := rs485.data_store.get_device(dev_id);
             String'Write(s, "<xml>");
             case t.message is
-               when rs485.MSG_TYPE_INFO =>
-                  String'Write(s, "<info><validity>" & rs485.msg_validity'Image(t.validity) &
+               when common.MSG_TYPE_INFO =>
+                  String'Write(s, "<info><validity>" & common.msg_validity'Image(t.validity) &
                                  "</validity><aging>" & Duration'Image(now - rec.info_age) &
                                  "</aging><presence>" & Duration'Image(now - rec.last_age) &
                                  "</presence><addresses>" & Integer'Image(Integer(rec.num_addr)) &
@@ -234,7 +236,7 @@ package body internal is
                              p : bbs.web_common.params.Map) is
       dev_id : Integer := 0;
       recs : Integer;
-      t : rs485.data_record;
+      t : common.data_record;
    begin
       bbs.http.ok(s, "application/xml");
       if (bbs.web_common.params.Contains(p, "device")) then
@@ -252,19 +254,19 @@ package body internal is
             for i in Natural range 0 .. Natural(recs) - 1 loop
                t := rs485.data_store.get_element(dev_id, i);
                case t.message is
-                  when rs485.MSG_TYPE_INFO =>
+                  when common.MSG_TYPE_INFO =>
                      xml_info_msg(s, t);
-                  when rs485.MSG_TYPE_BME280 =>
+                  when common.MSG_TYPE_BME280 =>
                      xml_bme280_msg(s, t);
-                  when rs485.MSG_TYPE_DISCRETE =>
+                  when common.MSG_TYPE_DISCRETE =>
                      xml_discrete_msg(s, t);
-                  when rs485.MSG_TYPE_ANALOG =>
+                  when common.MSG_TYPE_ANALOG =>
                      xml_analog_msg(s, t);
-                  when rs485.MSG_TYPE_CCS811 =>
+                  when common.MSG_TYPE_CCS811 =>
                      xml_ccs811_msg(s, t);
-                  when rs485.MSG_TYPE_TSL2561 =>
+                  when common.MSG_TYPE_TSL2561 =>
                      xml_tsl2561_msg(s, t);
-                  when rs485.MSG_TYPE_PCA9685 =>
+                  when common.MSG_TYPE_PCA9685 =>
                      xml_pca9685_msg(s, t);
                   when others =>
                      String'Write(s, "<error>Unknown record type</error>");
@@ -285,10 +287,10 @@ package body internal is
    --
    --  Provide an XML version of the info message
    --
-   procedure xml_info_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+   procedure xml_info_msg(s : GNAT.Sockets.Stream_Access; d : common.data_record) is
       now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
    begin
-      String'Write(s, "<info><validity>" & rs485.msg_validity'Image(d.validity) &
+      String'Write(s, "<info><validity>" & common.msg_validity'Image(d.validity) &
                      "</validity><aging>" & Duration'Image(now - d.aging) &
                      "</aging><addresses>" & Integer'Image(Integer(d.num_addr)) &
                      "</addresses><name>" & d.name & "</name></info>");
@@ -296,12 +298,12 @@ package body internal is
    --
    --  Provide an XML version of the BME280 message
    --
-   procedure xml_BME280_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+   procedure xml_BME280_msg(s : GNAT.Sockets.Stream_Access; d : common.data_record) is
       now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
    begin
-      String'Write(s, "<bme280><validity>" & rs485.msg_validity'Image(d.validity) &
+      String'Write(s, "<bme280><validity>" & common.msg_validity'Image(d.validity) &
                      "</validity><aging>" & Duration'Image(now - d.aging) &
-                     "</aging><bme280_status>" & rs485.msg_validity'Image(d.BME280_status) &
+                     "</aging><bme280_status>" & common.msg_validity'Image(d.BME280_status) &
                      "</bme280_status><bme280_age>" & Integer'Image(Integer(d.BME280_age)) &
                      "</bme280_age><bme280_temp_c>" & Float'Image(d.BME280_temp_c) &
                      "</bme280_temp_c><bme280_pressure_pa>" & Float'Image(d.BME280_pressure_pa) &
@@ -311,10 +313,10 @@ package body internal is
    --
    --  Provide an XML version of the discrete message
    --
-   procedure xml_discrete_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+   procedure xml_discrete_msg(s : GNAT.Sockets.Stream_Access; d : common.data_record) is
       now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
    begin
-      String'Write(s, "<discrete><validity>" & rs485.msg_validity'Image(d.validity) &
+      String'Write(s, "<discrete><validity>" & common.msg_validity'Image(d.validity) &
                      "</validity><aging>" & Duration'Image(now - d.aging) &
                      "</aging><disc_type>" & Integer'Image(Integer(d.disc_type)) &
                      "</disc_type><disc_value>" & Integer'Image(Integer(d.disc_value)) &
@@ -323,10 +325,10 @@ package body internal is
    --
    --  Provide an XML version of the analog message
    --
-   procedure xml_analog_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+   procedure xml_analog_msg(s : GNAT.Sockets.Stream_Access; d : common.data_record) is
       now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
    begin
-      String'Write(s, "<analogs><validity>" & rs485.msg_validity'Image(d.validity) &
+      String'Write(s, "<analogs><validity>" & common.msg_validity'Image(d.validity) &
                      "</validity><aging>" & Duration'Image(now - d.aging) &
                      "</aging><analog_type>" & Integer'Image(Integer(d.an_type)) &
                      "</analog_type><analog_count>" & Integer'Image(Integer(d.an_count)) &
@@ -339,12 +341,12 @@ package body internal is
    --
    --  Provide an XML version of the CCS811 message
    --
-   procedure xml_ccs811_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+   procedure xml_ccs811_msg(s : GNAT.Sockets.Stream_Access; d : common.data_record) is
       now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
    begin
-      String'Write(s, "<ccs811><validity>" & rs485.msg_validity'Image(d.validity) &
+      String'Write(s, "<ccs811><validity>" & common.msg_validity'Image(d.validity) &
                      "</validity><aging>" & Duration'Image(now - d.aging) &
-                     "</aging><ccs811_status>" & rs485.msg_validity'Image(d.CCS811_status) &
+                     "</aging><ccs811_status>" & common.msg_validity'Image(d.CCS811_status) &
                      "</ccs811_status><ccs811_age>" & Integer'Image(Integer(d.CCS811_age)) &
                      "</ccs811_age><ccs811_eco2>" & Integer'Image(Integer(d.CCS811_eCO2)) &
                      "</ccs811_eco2><ccs811_tvoc>" & Integer'Image(Integer(d.CCS811_TVOC)) &
@@ -353,12 +355,12 @@ package body internal is
    --
    --  Provide an XML version of the TSL2561 message
    --
-   procedure xml_tsl2561_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+   procedure xml_tsl2561_msg(s : GNAT.Sockets.Stream_Access; d : common.data_record) is
       now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
    begin
-      String'Write(s, "<tsl2561><validity>" & rs485.msg_validity'Image(d.validity) &
+      String'Write(s, "<tsl2561><validity>" & common.msg_validity'Image(d.validity) &
                      "</validity><aging>" & Duration'Image(now - d.aging) &
-                     "</aging><tsl2561_status>" & rs485.msg_validity'Image(d.TSL2561_status) &
+                     "</aging><tsl2561_status>" & common.msg_validity'Image(d.TSL2561_status) &
                      "</tsl2561_status><tsl2561_age>" & Integer'Image(Integer(d.TSL2561_age)) &
                      "</tsl2561_age><tsl2561_data0>" & Integer'Image(Integer(d.TSL2561_data0)) &
                      "</tsl2561_data0><tsl2561_data1>" & Integer'Image(Integer(d.TSL2561_data1)) &
@@ -368,10 +370,10 @@ package body internal is
    --
    --  Provide an XML version of the PCA9685 message
    --
-   procedure xml_pca9685_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record) is
+   procedure xml_pca9685_msg(s : GNAT.Sockets.Stream_Access; d : common.data_record) is
       now : constant Ada.Calendar.Time := Ada.Calendar.Clock;
    begin
-      String'Write(s, "<pca9685><validity>" & rs485.msg_validity'Image(d.validity) &
+      String'Write(s, "<pca9685><validity>" & common.msg_validity'Image(d.validity) &
                      "</validity><aging>" & Duration'Image(now - d.aging) &
                      "</aging>");
       for i in d.PCA9685_set'Range loop
@@ -476,5 +478,80 @@ package body internal is
                      "</http.msg><web.dbg>" & Boolean'Image(bbs.web_server.debug.get) &
                      "</web.dbg></xml>" & CRLF);
    end xml_debugging;
+   --
+   --  Control the logging of data
+   --
+   procedure xml_logging(s : GNAT.Sockets.Stream_Access;
+                         h : bbs.web_common.params.Map;
+                         p : bbs.web_common.params.Map) is
+   begin
+      bbs.http.ok(s, "application/xml");
+      --
+      -- Check to see which flags to change
+      --
+      if (bbs.web_common.params.Contains(p, "log.info")) then
+         declare
+            cmd : constant String := bbs.web_common.params.Element(p, "log.info");
+         begin
+            if (cmd(1) = 'T' or cmd(1) = 't') then
+               database.enable_info.set;
+            else
+               database.enable_info.clear;
+            end if;
+         end;
+      end if;
+      if (bbs.web_common.params.Contains(p, "log.BME280")) then
+         declare
+            cmd : constant String := bbs.web_common.params.Element(p, "log.BME280");
+         begin
+            if (cmd(1) = 'T' or cmd(1) = 't') then
+               database.enable_BME280.set;
+            else
+               database.enable_BME280.clear;
+            end if;
+         end;
+      end if;
+      if (bbs.web_common.params.Contains(p, "log.CCS811")) then
+         declare
+            cmd : constant String := bbs.web_common.params.Element(p, "log.CCS811");
+         begin
+            if (cmd(1) = 'T' or cmd(1) = 't') then
+               database.enable_CCS811.set;
+            else
+               database.enable_CCS811.clear;
+            end if;
+         end;
+      end if;
+      if (bbs.web_common.params.Contains(p, "log.TSL2561")) then
+         declare
+            cmd : constant String := bbs.web_common.params.Element(p, "log.TSL2561");
+         begin
+            if (cmd(1) = 'T' or cmd(1) = 't') then
+               database.enable_TSL2561.set;
+            else
+               database.enable_TSL2561.clear;
+            end if;
+         end;
+      end if;
+      if (bbs.web_common.params.Contains(p, "logging")) then
+         declare
+            cmd : constant String := bbs.web_common.params.Element(p, "logging");
+         begin
+            if (cmd(1) = 'T' or cmd(1) = 't') then
+               database.init(database.CSV);
+            else
+               database.end_log;
+            end if;
+         end;
+      end if;
+      --
+      --  Build XML reply giving state of all logging flags.
+      --
+      String'Write(s, "<xml><log.info>" & Boolean'Image(database.enable_info.get) &
+                     "</log.info><log.BME280>" & Boolean'Image(database.enable_BME280.get) &
+                     "</log.BME280><log.CCS811>" & Boolean'Image(database.enable_CCS811.get) &
+                     "</log.CCS811><log.TSL2561>" & Boolean'Image(database.enable_TSL2561.get) &
+                     "</log.TSL2561></xml>" & CRLF);
+   end xml_logging;
 
 end;

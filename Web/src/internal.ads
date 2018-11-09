@@ -1,7 +1,9 @@
 with GNAT.Sockets;
 with bbs.web_common;
 with rs485;
-use type rs485.message_types;
+--use type rs485.message_types;
+with common;
+use type common.message_types;
 --
 --  This package contains the various internal routines to generate pages, data.
 --  figures, and the like.  This is where the main customization will occure.
@@ -57,6 +59,12 @@ package internal is
    procedure xml_debugging(s : GNAT.Sockets.Stream_Access;
                            h : bbs.web_common.params.Map;
                            p : bbs.web_common.params.Map);
+   --
+   --  Control the logging of data
+   --
+   procedure xml_logging(s : GNAT.Sockets.Stream_Access;
+                         h : bbs.web_common.params.Map;
+                         p : bbs.web_common.params.Map);
 
 private
    CRLF : String renames bbs.web_common.CRLF;
@@ -67,55 +75,55 @@ private
    --
    --  Display an info record as a table that can be nested in another table
    --
-   procedure html_info(s : GNAT.Sockets.Stream_Access; d : rs485.data_record);
+   procedure html_info(s : GNAT.Sockets.Stream_Access; d : common.data_record);
    --
    --  Display an BME280 record as a table that can be nested in another table.
    --  The metric boolean controls whether data is displayed in metric or
    --  standard.
    --
-   procedure html_bme280(s : GNAT.Sockets.Stream_Access; d : rs485.data_record;
+   procedure html_bme280(s : GNAT.Sockets.Stream_Access; d : common.data_record;
                         metric : Boolean);
    --
    --  Display an discrete record as a table that can be nested in another table
    --
-   procedure html_discrete(s : GNAT.Sockets.Stream_Access; d : rs485.data_record);
+   procedure html_discrete(s : GNAT.Sockets.Stream_Access; d : common.data_record);
    --
    --  Display an CCS811 record as a table that can be nested in another table
    --
-   procedure html_ccs811(s : GNAT.Sockets.Stream_Access; d : rs485.data_record);
+   procedure html_ccs811(s : GNAT.Sockets.Stream_Access; d : common.data_record);
    --
    --  Display an TSL2561 record as a table that can be nested in another table
    --
-   procedure html_tsl2561(s : GNAT.Sockets.Stream_Access; d : rs485.data_record);
+   procedure html_tsl2561(s : GNAT.Sockets.Stream_Access; d : common.data_record);
    --
    --  Provide data in XML format
    --
    --  Provide an XML version of the info message
    --
-   procedure xml_info_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record);
+   procedure xml_info_msg(s : GNAT.Sockets.Stream_Access; d : common.data_record);
    --
    --  Provide an XML version of the BME280 message
    --
-   procedure xml_BME280_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record);
+   procedure xml_BME280_msg(s : GNAT.Sockets.Stream_Access; d : common.data_record);
    --
    --  Provide an XML version of the discrete message
    --
-   procedure xml_discrete_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record);
+   procedure xml_discrete_msg(s : GNAT.Sockets.Stream_Access; d : common.data_record);
    --
    --  Provide an XML version of the analog message
    --
-   procedure xml_analog_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record);
+   procedure xml_analog_msg(s : GNAT.Sockets.Stream_Access; d : common.data_record);
    --
    --  Provide an XML version of the CCS811 message
    --
-   procedure xml_ccs811_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record);
+   procedure xml_ccs811_msg(s : GNAT.Sockets.Stream_Access; d : common.data_record);
    --
    --  Provide an XML version of the TSL2561 message
    --
-   procedure xml_tsl2561_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record);
+   procedure xml_tsl2561_msg(s : GNAT.Sockets.Stream_Access; d : common.data_record);
    --
    --  Provide an XML version of the PCA9685 message
    --
-   procedure xml_pca9685_msg(s : GNAT.Sockets.Stream_Access; d : rs485.data_record);
+   procedure xml_pca9685_msg(s : GNAT.Sockets.Stream_Access; d : common.data_record);
 end;
 

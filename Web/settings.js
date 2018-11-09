@@ -5,6 +5,7 @@
 function page_loaded()
 {
   debug_req(-1);
+  log_req(-1);
   loadCounter();
 }
 //
@@ -251,6 +252,79 @@ function debug_resp(xml)
   check_state(xmlDoc, "http.msg");
   check_state(xmlDoc, "http.head");
   check_state(xmlDoc, "web.dbg");
+}
+//
+// Helper function to update checkbox state
+//
+function check_state(xml, name)
+{
+  var item = xml.getElementsByTagName(name);
+
+  if (item.length > 0)
+  {
+    if (item[0].childNodes[0].nodeValue == "TRUE")
+    {
+      document.getElementById(name).checked = true;
+    }
+    else
+    {
+      document.getElementById(name).checked = false;
+    }
+  }
+}
+//
+// Send request for logging.  This can also be called with no parameters to
+// just return the status of the logging flags.
+//
+function log_req(index)
+{
+  var xhttp = new XMLHttpRequest();
+  var item;
+  var state;
+  var req = "/xml/Log";
+
+  if ((index >= 0) && (index <= 3))
+  {
+    item = ["log.info", "log.BME280", "log.CCS811", "log.TSL2561"][index];
+    req += "?" + item + "=";
+    state = document.getElementById(item).checked;
+    if (state == true)
+    {
+      req += "True";
+    }
+    else
+    {
+      req += "False"
+    }
+  }
+  if (index == 10)
+  {
+    req += "?logging=True";
+  }
+  if (index == 11)
+  {
+    req += "?logging=False";
+  }
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      debug_resp(this);
+    }
+  }
+  xhttp.open("GET", req, true);
+  xhttp.send();
+}
+//
+// Display response with debugging information
+//
+function log_resp(xml)
+{
+  var xmlDoc = xml.responseXML;
+  var item;
+
+  check_state(xmlDoc, "log.info");
+  check_state(xmlDoc, "log.BME280");
+  check_state(xmlDoc, "log.CCS811");
+  check_state(xmlDoc, "log.TSL2561");
 }
 //
 // Helper function to update checkbox state

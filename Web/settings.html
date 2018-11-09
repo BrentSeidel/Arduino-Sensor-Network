@@ -18,6 +18,14 @@
 <input type="checkbox" onclick="debug_req(3)" id="http.head">HTTP Header Debugging<br/>
 <input type="checkbox" onclick="debug_req(4)" id="web.dbg">Web Server Debugging<br/>
 <hr/>
+<h2>Logging Control</h2>
+<button type="button" onclick="log_req(10)">Start Logging</button>
+<button type="button" onclick="log_req(11)">Stop Logging</button><br/>
+<input type="checkbox" onclick="log_req(0)" id="log.info">Log Information Messages<br/>
+<input type="checkbox" onclick="log_req(1)" id="log.BME280">Log BME280 Messages<br/>
+<input type="checkbox" onclick="log_req(2)" id="log.CCS811">Log CCS811 Messages<br/>
+<input type="checkbox" onclick="log_req(3)" id="log.TSL2561">Log TSL2561 Messages<br/>
+<hr/>
 <h2>Commands to Controller</h2>
 <button type="button" onclick="sendCommand('!A')">LEDs Off</button>
 <button type="button" onclick="sendCommand('!B')">LEDs On</button>

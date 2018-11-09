@@ -40,6 +40,7 @@
 /xml/Name name internal
 /xml/DevData device-data internal
 /xml/Debug debugging internal
+/xml/Log logging internal
 #
 # Style sheet for pages.
 #

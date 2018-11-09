@@ -30,6 +30,7 @@ procedure Main is
       --
       internal_map.Insert("counter", internal.xml_count'Access);
       internal_map.Insert("debugging", internal.xml_debugging'Access);
+      internal_map.Insert("logging", internal.xml_logging'Access);
       internal_map.Insert("devices", internal.html_devices'Access);
       internal_map.Insert("device-count", internal.xml_devices'Access);
       internal_map.Insert("device-data", internal.xml_device_data'Access);
