@@ -1,9 +1,11 @@
 .AppleDouble
+.DS_Store
 
 Web/obj/*
 
 Web/main
 
+*.csv
 *.aux
 *.log
 *.gz

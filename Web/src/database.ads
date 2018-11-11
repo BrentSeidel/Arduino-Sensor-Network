@@ -35,6 +35,10 @@ package database is
    enable_TSL2561 : BBS.web_common.protected_flag;
 private
    --
+   --  Path where log files are stored
+   --
+   log_path : String := "./";
+   --
    --  What kind of database is selected
    --
    selected_db : database_type := None;
@@ -43,6 +47,8 @@ private
    --
    Info_file   : Ada.Text_IO.File_Type;
    BME280_file : Ada.Text_IO.File_Type;
+   CCS811_file : Ada.Text_IO.File_Type;
+   TSL2561_file : Ada.Text_IO.File_Type;
    --
    --  Data and database specific data logging procedures.
    --

@@ -5,18 +5,27 @@ package body database is
    --  Initialize the database interface by selecting which type of database to use.
    --
    procedure init(kind : database_type) is
+      path : String := log_path & Ada.Calendar.Formatting.Image(Ada.Calendar.Clock) & "-";
    begin
       if (selected_db = None) then
          case kind is
          when CSV =>
             Ada.Text_IO.Create(File => Info_file,
                                Mode => Ada.Text_IO.Out_File,
-                               Name => "Info.csv");
+                               Name => path & "Info.csv");
             Ada.Text_IO.Create(File => BME280_file,
                                Mode => Ada.Text_IO.Out_File,
-                               Name => "BME280.csv");
+                               Name => path & "BME280.csv");
+            Ada.Text_IO.Create(File => CCS811_file,
+                               Mode => Ada.Text_IO.Out_File,
+                               Name => path & "CCS811.csv");
+            Ada.Text_IO.Create(File => TSL2561_file,
+                               Mode => Ada.Text_IO.Out_File,
+                               Name => path & "TSL2561.csv");
             Ada.Text_IO.Put_Line(Info_file, "Time,Node,Addresses,Name");
             Ada.Text_IO.Put_Line(BME280_file, "Time,Node,Temperature,Pressure,Humidity");
+            Ada.Text_IO.Put_Line(CCS811_file, "Time,Node,eCO2,TVOC");
+            Ada.Text_IO.Put_Line(TSL2561_file, "Time,Node,Data0,Data1,LUX");
          when SQLite =>
             null;
          when others =>
@@ -54,6 +63,8 @@ package body database is
          when CSV =>
             Ada.Text_IO.Close(Info_file);
             Ada.Text_IO.Close(BME280_file);
+            Ada.Text_IO.Close(CCS811_file);
+            Ada.Text_IO.Close(TSL2561_file);
          when SQLite =>
             null;
          when others =>
@@ -110,24 +121,30 @@ package body database is
    --  Data and database specific data logging procedures.
    --
    procedure log_csv(node : Integer; d : common.data_record) is
+      prefix : String := Ada.Calendar.Formatting.Image(Ada.Calendar.Clock) & "," &
+        Integer'Image(node);
    begin
       case d.message is
          when common.MSG_TYPE_INFO =>
             if (enable_info.get) then
-               Ada.Text_IO.Put_Line(BME280_file, Ada.Calendar.Formatting.Image(Ada.Calendar.Clock) & "," &
-                                      Integer'Image(node) & "," & Integer'Image(Integer(d.num_addr)) & "," & d.name);
+               Ada.Text_IO.Put_Line(Info_file, prefix & "," & Integer'Image(Integer(d.num_addr)) & "," & d.name);
             end if;
          when common.MSG_TYPE_BME280 =>
             if (enable_BME280.get) then
-               Ada.Text_IO.Put_Line(BME280_file, Ada.Calendar.Formatting.Image(Ada.Calendar.Clock) & "," &
-                                      Integer'Image(node) & "," & Float'Image(d.BME280_temp_c) & "," &
+               Ada.Text_IO.Put_Line(BME280_file, prefix & "," & Float'Image(d.BME280_temp_c) & "," &
                                       Float'Image(d.BME280_pressure_pa) & "," &
                                       Float'Image(d.BME280_humidity));
             end if;
          when common.MSG_TYPE_CCS811 =>
-            null;
+            if (enable_BME280.get) then
+               Ada.Text_IO.Put_Line(CCS811_file, prefix & "," & Integer'Image(Integer(d.CCS811_eCO2)) & "," &
+                                      Integer'Image(Integer(d.CCS811_TVOC)));
+            end if;
          when common.MSG_TYPE_TSL2561 =>
-            null;
+            if (enable_TSL2561.get) then
+               Ada.Text_IO.Put_Line(TSL2561_file, prefix & "," & Integer'Image(Integer(d.TSL2561_data0)) & "," &
+                                      Integer'Image(Integer(d.TSL2561_data1)) & "," & Integer'Image(Integer(d.TSL2561_lux)));
+            end if;
          when others =>
             null;
       end case;
