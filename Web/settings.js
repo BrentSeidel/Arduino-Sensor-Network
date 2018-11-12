@@ -307,7 +307,7 @@ function log_req(index)
   }
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
-      debug_resp(this);
+      log_resp(this);
     }
   }
   xhttp.open("GET", req, true);
@@ -319,7 +319,6 @@ function log_req(index)
 function log_resp(xml)
 {
   var xmlDoc = xml.responseXML;
-  var item;
 
   check_state(xmlDoc, "log.info");
   check_state(xmlDoc, "log.BME280");
