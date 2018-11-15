@@ -1,5 +1,6 @@
 with Ada.Calendar;
 with Ada.Calendar.Formatting;
+with Ada.Strings.Fixed;
 package body database is
    --
    --  Initialize the database interface by selecting which type of database to use.
@@ -7,6 +8,15 @@ package body database is
    procedure init(kind : database_type) is
       path : String := log_path & Ada.Calendar.Formatting.Image(Ada.Calendar.Clock) & "-";
    begin
+      --
+      --  Since the colon character, ':', was used as a directory separator in pre-OS X versions of MacOS,
+      --  it is replaced by a period, '.'.
+      --
+      for i in path'Range loop
+         if (path(i) = ':') then
+            path(i) := '.';
+         end if;
+      end loop;
       if (selected_db = None) then
          case kind is
          when CSV =>
@@ -121,13 +131,14 @@ package body database is
    --  Data and database specific data logging procedures.
    --
    procedure log_csv(node : Integer; d : common.data_record) is
-      prefix : String := Ada.Calendar.Formatting.Image(Ada.Calendar.Clock) & "," &
+      prefix : constant String := Ada.Calendar.Formatting.Image(Ada.Calendar.Clock) & "," &
         Integer'Image(node);
    begin
       case d.message is
          when common.MSG_TYPE_INFO =>
             if (enable_info.get) then
-               Ada.Text_IO.Put_Line(Info_file, prefix & "," & Integer'Image(Integer(d.num_addr)) & "," & d.name);
+               Ada.Text_IO.Put_Line(Info_file, prefix & "," & Integer'Image(Integer(d.num_addr)) & ",""" &
+                 Ada.Strings.Fixed.Trim(d.name, Ada.Strings.Right) & """");
             end if;
          when common.MSG_TYPE_BME280 =>
             if (enable_BME280.get) then
