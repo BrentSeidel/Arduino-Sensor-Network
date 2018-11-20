@@ -74,6 +74,7 @@ If a command code is not specified, the default command code of 0 for \texttt{CM
     \hline
     0 & \texttt{CMD\_READ} & Read data from the specified address.\\
     1 & \texttt{CMD\_RESET} & Perform a software reset.\\
+    2 & \texttt{CMD\_WRITE} & Perform an application specific write.\\
   \end{tabular}
   \caption{Defined Command Codes}
   \label{tab:commands}
@@ -140,5 +141,226 @@ To make the response messages easier to decode, each message has a message type 
   \caption{Defined Analog Types}
   \label{tab:analogtype}
 \end{table}
+
+\subsection{Back-Channel Commands}
+While the commands are human usable, they are designed for ease of parsing, not ease of use.  It is expected that higher level software will provide a wrapper for them.  At this point, they should be considered to be experimental and subject to change.  There are two groups of commands:
+\begin{itemize}
+  \item General commands tell the controller to do something that applies to all nodes on the network.  The specific general commands currently defined are:
+  \begin{itemize}
+    \item \texttt{!A} Tell all nodes to turn their indicator LED off.
+    \item \texttt{!B} Tell all nodes to turn their indicator LED on.
+    \item \texttt{!C} Tell all nodes to toggle their indicator LED.
+    \item \texttt{!D} Tell all nodes to identify themselves.
+  \end{itemize}
+  \item Directed commands are sent to a specific node telling it to do something.  The currently defined directed commands are:
+  \begin{itemize}
+    \item \texttt{!R<node>,} Request node it node id of \texttt{<node>} to perform a software reset.
+    \item \texttt{!S<cmd>,<node>,<arg>,} Send an arbitrary command, \texttt{<cmd>}, to node id \texttt{<node>}, with command arguments, \texttt{<arg>}.
+  \end{itemize}
+  Where all numbers are in hexidecimal.  Note that the trailing comma is required.
+\end{itemize}
+
+\section{Logging}
+Data can be logged to files for later analysis.  Provisions exist for logging to be started and stopped and started on a global basis or by record type.  Starting global logging creates the files for the data and stopping global logging closes the files.  To log data, logging has to be started globally and logging of the desired data has to be enabled.  The data records generally supported for logging are:
+\begin{itemize}
+  \item Node information records
+  \item BME280 Temperature, pressure, and humidity sensor
+  \item CCS811 eCO$_2$ and TVOC (total volatile organic compounds) air quality sensor
+  \item TLS2561 light sensor
+\end{itemize}
+The discretes and analogs are customized for the application and thus any logging of them would also have to be customized.  The existing logging code can be used as an example.  Note that logging can generate an enormous amount of data, so be prepared.
+%======================================
+\section{API}
+A number of the defined URLs return XML information.  This can be used to create an API that can be used by programs beyond just a web browser.
+
+%---------------------------------------------------------------
+\subsection{Graphics}
+Two of the URLs return an image in SVG format.  Typically, it is used for display on a web page, but could be used for other purposes.
+
+%---------------------------------------------------------------
+\subsubsection{Dial}
+The URL is \texttt{/Dial}.  The parameters are:
+\begin{itemize}
+  \item \texttt{min} - Specify the minimum value shown on the dial.
+  \item \texttt{max} - Specify the maximum value shown on the dial.
+  \item \texttt{value} - Specify the value indicated by the dial's pointer.
+\end{itemize}
+
+%---------------------------------------------------------------
+\subsubsection{Thermometer}
+The URL is \texttt{/Thermometer}.  The parameters are:
+\begin{itemize}
+  \item \texttt{min} - Specify the minimum value shown on the thermometer.
+  \item \texttt{max} - Specify the maximum value shown on the thermometer.
+  \item \texttt{value} - Specify the value indicated by the thermometer.
+\end{itemize}
+
+%---------------------------------------------------------------
+\subsection{Data and Control}
+The rest of the URLs either return data or are used to control the system.
+
+%---------------------------------------------------------------
+\subsubsection{Send a Command to a Node}
+This function is used to send a command to the controller via the back channel.  The URL is \texttt{/xml/Command}.  There is one parameter:
+\begin{itemize}
+  \item \texttt{command} - The command to send as text.
+\end{itemize}
+
+The returned data is returned in a \texttt{<xml>} block with the following contents:
+\begin{itemize}
+  \item \texttt{command} - Echoes the sent command, if the \texttt{command} parameter was present, or
+  \item \texttt{error} - Provides an error message if the \texttt{command|} parameter was not present.
+\end{itemize}
+
+%---------------------------------------------------------------
+\subsubsection{Get System Counters}
+The URL is \texttt{/xml/Counter}.  There are no parameters.  The returned data is in a \texttt{<xml>} block with the following contents:
+\begin{itemize}
+  \item \texttt{<counter>} - XML container for number of web requests handled counter.
+  \item \texttt{<tasks>} - XML contained for number of currently active web handler tasks.
+  \item \texttt{<rs485>} - XML container for RS-485 state machine activity counter.
+\end{itemize}
+
+%---------------------------------------------------------------
+\subsubsection{Get Maximum Device Number on the Network}
+The URL is \texttt{/xml/Devices}.  There are no parameters.  The returned data is in a \texttt{<xml>} block with the following contents:
+\begin{itemize}
+  \item \texttt{<length>} - XML container for the maximum device number found on the network.  Used to set the length of data structures.
+\end{itemize}
+
+%---------------------------------------------------------------
+\subsubsection{Get Data from a Device on the Network}
+While this call is simple, this returns the most complex set of data.  The URL is \texttt{/xml/DevData}.  There is one parameter:
+\begin{itemize}
+  \item \texttt{device} - Contains the node ID of the device to get data from.
+\end{itemize}
+
+The returned data is in an \texttt{<xml>} block.  The following components may, or may not be present depending on the configuration of the node:
+\begin{itemize}
+  \item \texttt{<info>} - This should always be present.
+  \begin{itemize}
+    \item \texttt{<validity>} - Validity status for info data.
+    \item \texttt{<aging>} - Number of seconds since info message received.
+    \item \texttt{<addresses>} - Number of addresses supported by device.
+    \item \texttt{<name>} - Name of the node.
+  \end{itemize}
+  \item \texttt{<bme280>} - Present if node is configured with a BME280 sensor.
+  \begin{itemize}
+    \item \texttt{<validity>} - Validity status for BME280 data.
+    \item \texttt{<aging>} - Number of seconds since BME280 message received.
+    \item \texttt{<bme280\_status>} - Status of the BME280 sensor reported by node.
+    \item \texttt{<bme280\_age>} - Number of frames since BME280 sensor data read.
+    \item \texttt{<bme280\_temp\_c>} - Temperature in degrees Celcius.
+    \item \texttt{<bme280\_pressure\_pa>} - Atmospheric pressure in Pascals.
+    \item \texttt{<bme280\_humidity>} - Relative humidity in percent.
+  \end{itemize}
+  \item \texttt{<discretes>} - Present if node is configured to transmit discretes.
+  \begin{itemize}
+    \item \texttt{<validity>} - Validity status for discretes data.
+    \item \texttt{<aging>} - Number of seconds since discretes message received.
+    \item \texttt{<disc\_type>} - Code indicating the type of these discretes.
+    \item \texttt{<disc\_value>} - Value of the discretes as a 32 bit unsigned integer.  One bit for each discrete.
+  \end{itemize}
+  \item \texttt{<analogs>} - Present if node is configured to transmit analog values.
+  \begin{itemize}
+    \item \texttt{<validity>} - Validity status for analog data.
+    \item \texttt{<aging>} - Number of seconds since analog message received.
+    \item \texttt{<analog\_type>} - Code indicating the type of these analog values.
+    \item \texttt{<analog\_count>} - The number of analog value provided in this message.
+    \item \texttt{<value>} - Value of analog reading.  This entry is repeated \texttt{analog\_count} times.  Once for each analog value.
+  \end{itemize}
+  \item \texttt{<ccs811>} - Present if node is configured with a CCS811 sensor.
+  \begin{itemize}
+    \item \texttt{<validity>} - Validity status for CCS811 data.
+    \item \texttt{<aging>} - Number of seconds since CCS811 message received.
+    \item \texttt{<ccs811\_status>} - Status of the CCS811 sensor reported by node.
+    \item \texttt{<ccs811\_age>} - Number of frames since CCS811 sensor data read.
+    \item \texttt{<ccs811\_eco2>} - Measurement of CO$_2$ concentration.
+    \item \texttt{<ccs811\_tvoc>} - Measurement of total volatile organic compounds (TVOC) concentration.
+  \end{itemize}
+  \item \texttt{<tsl2561>} - Present if node is configured with a TSL2561 sensor.
+  \begin{itemize}
+    \item \texttt{<validity>} - Validity status for TSL2561 data.
+    \item \texttt{<aging>} - Number of seconds since TSL2561 message received.
+    \item \texttt{<tsl2561\_status>} - Status of the TSL2561 sensor reported by node.
+    \item \texttt{<tsl2561\_age>} - Number of frames since TSL2561 sensor data read.
+    \item \texttt{<tsl2561\_data0>} - Measurement of one band of light.
+    \item \texttt{<tsl2561\_data1>} - Measurement of one band of light.
+    \item \texttt{<tsl2561\_lux>} - Calculated illumination in Lux.
+  \end{itemize}
+  \item \texttt{<pca9685>} - Present if node is configured with a PCA9685 PWM controller.
+  \begin{itemize}
+    \item \texttt{<validity>} - Validity status for PCA9685 data.
+    \item \texttt{<aging>} - Number of seconds since PCA9685 message received.
+    \item \texttt{<channel>} - One of these entries for each of the 16 PWM channels.  Each entry contains three comma separated values.  The values are:
+    \begin{itemize}
+      \item A boolean indicating if this channel has been set.
+      \item An unsigned integer indicating the PWM ``On'' count.
+      \item An unsigned integer indicating the PWM ``Off'' count.
+    \end{itemize}
+  \end{itemize}
+  \item \texttt{<error>} - Present if an error has occurred.
+\end{itemize}
+
+%---------------------------------------------------------------
+\subsubsection{Control Debugging Messages}
+Various debugging messages can be displayed on the console.  This entry can be used to turn messages on or off and to report the status of debugging messages.  The URL is \texttt{/xml/Debug}.  There are several parameters:
+\begin{itemize}
+  \item \texttt{rs485.char} - Set to `T' to print characters that are read from the RS-485 bus.
+  \item \texttt{rs485.msg} - Set to `T' to print the type of message that is read from the RS-485 bus.
+  \item \texttt{http.head} - Set to `T' to print the headers from each HTTP request.
+  \item \texttt{http.msg} - Set to `T' to print the HTTP requests.
+  \item \texttt{web.dbg} - Set to `T' to print debugging messages from the web server.
+\end{itemize}
+
+The returned data is in a \texttt{<xml>} block with the following contents:
+\begin{itemize}
+  \item \texttt{<rs485.char>} - \texttt{TRUE} if RS-485 character debugging is enabled.
+  \item \texttt{<rs485.msg>} - \texttt{TRUE} if RS-485 message debugging is enabled.
+  \item \texttt{<http.head>} - \texttt{TRUE} if HTTP header debugging is enabled.
+  \item \texttt{<http.msg>} - \texttt{TRUE} if HTTP request debugging is enabled.
+  \item \texttt{<web.dbg>} - \texttt{TRUE} if web debugging is enabled.
+\end{itemize}
+
+%---------------------------------------------------------------
+\subsubsection{Control Data Logging}
+Starting logging is a two step process.  First the specific messages to log need to be enabled.  Then logging needs to be turned on.  The URL is \texttt{/xml/Log}.  There are several parameters:
+\begin{itemize}
+  \item \texttt{log.info} - Set to `T' to enable logging of info messages.
+  \item \texttt{log.BME280} - Set to `T' to enable logging of BME280 messages.
+  \item \texttt{log.CCS811} - Set to `T' to enable logging of CCS811 messages.
+  \item \texttt{log.TSL2561} - Set to `T' to enable logging of TSL2561 messages.
+  \item \texttt{logging} - Set to `T' to turn logging on.
+\end{itemize}
+
+The returned data is in a \texttt{<xml>} block with the following contents:
+\begin{itemize}
+  \item \texttt{<log.info>} - \texttt{TRUE} if info message logging is enabled.
+  \item \texttt{<log.BME280>} - \texttt{TRUE} if BME280 message logging is enabled.
+  \item \texttt{<log.CCS811>} - \texttt{TRUE} if CCS811 message logging is enabled.
+  \item \texttt{<log.TSL2561>} - \texttt{TRUE} if TSL2561 message logging is enabled.
+\end{itemize}
+Note that there is currently no item that gives the overall state of logging.  This will need to be added at some point.
+
+%---------------------------------------------------------------
+\subsubsection{Get Device Name}
+The URL is \texttt{/xml/Name} name internal.  There is one parameter:
+\begin{itemize}
+  \item \texttt{device} - Specify the device number to get information from.
+\end{itemize}
+
+The returned data is in a \texttt{<xml>} block with the following contents:
+\begin{itemize}
+  \item \texttt{<info>} - Block containing device information, if present.  The information consists of the following:
+  \begin{itemize}
+    \item \texttt{<validity>} - Validity code for the data.
+    \item \texttt{<aging>} - The time in seconds since the info record was received from the node.
+    \item \texttt{<presence>} - The time in seconds since any records were received from the node.
+    \item \texttt{<addresses>} - The number of addresses supported by the node.
+    \item \texttt{<name>} - The node's name as a string.
+  \end{itemize}
+  \item \texttt{<error>} - Block containing an error message if device information cannot be provided.
+\end{itemize}
+
 
 \end{document}
