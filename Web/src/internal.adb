@@ -551,7 +551,8 @@ package body internal is
                      "</log.info><log.BME280>" & Boolean'Image(database.enable_BME280.get) &
                      "</log.BME280><log.CCS811>" & Boolean'Image(database.enable_CCS811.get) &
                      "</log.CCS811><log.TSL2561>" & Boolean'Image(database.enable_TSL2561.get) &
-                     "</log.TSL2561></xml>" & CRLF);
+                     "</log.TSL2561><log.type>" & database.database_type'Image(database.selected_db) &
+                     "</log.type></xml>" & CRLF);
    end xml_logging;
 
 end;

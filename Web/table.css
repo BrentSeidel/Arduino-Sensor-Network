@@ -62,3 +62,13 @@ td.unused
   padding: 1px;
 }
 
+.db-none
+{
+  color:red;
+}
+
+.db-csv
+{
+  color:green;
+}
+

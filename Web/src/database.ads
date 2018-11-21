@@ -33,15 +33,15 @@ package database is
    enable_BME280  : BBS.web_common.protected_flag;
    enable_CCS811  : BBS.web_common.protected_flag;
    enable_TSL2561 : BBS.web_common.protected_flag;
+   --
+   --  What kind of database is selected
+   --
+   selected_db : database_type := None;
 private
    --
    --  Path where log files are stored
    --
    log_path : String := "./";
-   --
-   --  What kind of database is selected
-   --
-   selected_db : database_type := None;
    --
    --  Files for CSV database
    --

@@ -204,7 +204,7 @@ function dispDevData(xml)
   {
     text = "<h1>" + name[0].childNodes[0].nodeValue + "</h1>";
   }
-    document.getElementById("DevData").innerHTML = text;
+  document.getElementById("DevData").innerHTML = text;
 }
 //
 // Send request for debugging.  This can also be called with no parameters to
@@ -319,11 +319,21 @@ function log_req(index)
 function log_resp(xml)
 {
   var xmlDoc = xml.responseXML;
+  var db_type = xmlDoc.getElementsByTagName("log.type")[0].childNodes[0].nodeValue;
 
   check_state(xmlDoc, "log.info");
   check_state(xmlDoc, "log.BME280");
   check_state(xmlDoc, "log.CCS811");
   check_state(xmlDoc, "log.TSL2561");
+  document.getElementById("log.type").innerHTML = db_type;
+  if (db_type == "NONE")
+  {
+    document.getElementById("log.type").className = "db-none";
+  }
+  else
+  {
+    document.getElementById("log.type").className = "db-csv";
+  }
 }
 //
 // Helper function to update checkbox state
