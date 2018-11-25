@@ -222,23 +222,39 @@ package body rs485 is
             case data_type is
                when common.MSG_TYPE_INFO =>
                   temp_rec := parse_msg_info(data_buffer);
+                  data_store.update_data_store(temp_rec, device, address);
+                  database.log(Integer(device), temp_rec);
                when common.MSG_TYPE_DISCRETE =>
                   temp_rec := parse_msg_discrete(data_buffer);
+                  data_store.update_data_store(temp_rec, device, address);
+                  database.log(Integer(device), temp_rec);
                when common.MSG_TYPE_ANALOG =>
                   temp_rec := parse_msg_analog(data_buffer);
+                  data_store.update_data_store(temp_rec, device, address);
+                  database.log(Integer(device), temp_rec);
                when common.MSG_TYPE_BME280 =>
                   temp_rec := parse_msg_BME280(data_buffer);
+                  data_store.update_data_store(temp_rec, device, address);
+                  database.log(Integer(device), temp_rec);
                when common.MSG_TYPE_CCS811 =>
                   temp_rec := parse_msg_CCS811(data_buffer);
+                  data_store.update_data_store(temp_rec, device, address);
+                  database.log(Integer(device), temp_rec);
                when common.MSG_TYPE_TSL2561 =>
                   temp_rec := parse_msg_TSL2561(data_buffer);
+                  data_store.update_data_store(temp_rec, device, address);
+                  database.log(Integer(device), temp_rec);
                when common.MSG_TYPE_PCA9685 =>
                   temp_rec := parse_msg_PCA9685(data_buffer);
+                  data_store.update_data_store(temp_rec, device, address);
+                  database.log(Integer(device), temp_rec);
+               when common.MSG_TYPE_EMPTY =>
+                  null;
+               when common.MSG_TYPE_VERSION =>
+                  null;
                when others =>
-                  temp_rec := parse_msg_unknown(data_buffer);
+                  null;
             end case;
-            data_store.update_data_store(temp_rec, device, address);
-            database.log(Integer(device), temp_rec);
          end if;
       end loop;
       Ada.Text_IO.Put_Line("Shutting down RS-485 state machine.");

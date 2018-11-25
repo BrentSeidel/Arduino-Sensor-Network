@@ -1,5 +1,6 @@
 with Ada.Calendar;
 with Ada.Calendar.Formatting;
+with Ada.Exceptions;
 with Ada.Strings.Fixed;
 package body database is
    --
@@ -7,6 +8,7 @@ package body database is
    --
    procedure init(kind : database_type) is
       path : String := log_path & Ada.Calendar.Formatting.Image(Ada.Calendar.Clock) & "-";
+      open_count : Integer := 0;
    begin
       --
       --  Since the colon character, ':', was used as a directory separator in pre-OS X versions of MacOS,
@@ -20,28 +22,56 @@ package body database is
       if (selected_db = None) then
          case kind is
          when CSV =>
-            Ada.Text_IO.Create(File => Info_file,
-                               Mode => Ada.Text_IO.Out_File,
-                               Name => path & "Info.csv");
-            Ada.Text_IO.Create(File => BME280_file,
-                               Mode => Ada.Text_IO.Out_File,
-                               Name => path & "BME280.csv");
-            Ada.Text_IO.Create(File => CCS811_file,
-                               Mode => Ada.Text_IO.Out_File,
-                               Name => path & "CCS811.csv");
-            Ada.Text_IO.Create(File => TSL2561_file,
-                               Mode => Ada.Text_IO.Out_File,
-                               Name => path & "TSL2561.csv");
-            Ada.Text_IO.Put_Line(Info_file, "Time,Node,Addresses,Name");
-            Ada.Text_IO.Put_Line(BME280_file, "Time,Node,Temperature,Pressure,Humidity");
-            Ada.Text_IO.Put_Line(CCS811_file, "Time,Node,eCO2,TVOC");
-            Ada.Text_IO.Put_Line(TSL2561_file, "Time,Node,Data0,Data1,LUX");
+            begin
+               Ada.Text_IO.Create(File => Info_file,
+                                  Mode => Ada.Text_IO.Out_File,
+                                  Name => path & "Info.csv");
+               open_count := open_count + 1;
+               Ada.Text_IO.Create(File => BME280_file,
+                                  Mode => Ada.Text_IO.Out_File,
+                                  Name => path & "BME280.csv");
+               open_count := open_count + 1;
+               Ada.Text_IO.Create(File => CCS811_file,
+                                  Mode => Ada.Text_IO.Out_File,
+                                  Name => path & "CCS811.csv");
+               open_count := open_count + 1;
+               Ada.Text_IO.Create(File => TSL2561_file,
+                                  Mode => Ada.Text_IO.Out_File,
+                                  Name => path & "TSL2561.csv");
+               open_count := open_count + 1;
+               Ada.Text_IO.Put_Line(Info_file, "Time,Node,Addresses,Name");
+               Ada.Text_IO.Put_Line(BME280_file, "Time,Node,Temperature,Pressure,Humidity");
+               Ada.Text_IO.Put_Line(CCS811_file, "Time,Node,eCO2,TVOC");
+               Ada.Text_IO.Put_Line(TSL2561_file, "Time,Node,Data0,Data1,LUX");
+               selected_db := CSV;
+            exception
+                  --
+                  --  If a problem occured when opening the log files, print a message,
+                  --  close any of the files that were opened, and set the selected db
+                  --  to None since logging can't be enabled.
+                  --
+               when err : others =>
+                  Ada.Text_IO.Put_Line("Problem occured opening log files:");
+                  Ada.Text_IO.Put_Line(Ada.Exceptions.Exception_Information(err));
+                  if open_count > 0 then
+                     Ada.Text_IO.Close(Info_file);
+                  end if;
+                  if open_count > 1 then
+                     Ada.Text_IO.Close(BME280_file);
+                  end if;
+                  if open_count > 2 then
+                     Ada.Text_IO.Close(CCS811_file);
+                  end if;
+                  if open_count > 3 then
+                     Ada.Text_IO.Close(TSL2561_file);
+                  end if;
+                  selected_db := None;
+            end;
          when SQLite =>
             null;
          when others =>
             null;
          end case;
-         selected_db := kind;
       end if;
    end;
    --
