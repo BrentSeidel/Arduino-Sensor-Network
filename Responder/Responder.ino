@@ -267,6 +267,7 @@ void loop()
             PCA9685_set_chan((uint8_t)((cmd_arg >> 24) & 0xF),
                              (uint16_t)((cmd_arg >> 12) & 0xFFF),
                              (uint16_t)(cmd_arg & 0xFFF));
+            rs485_msg_empty(rs485, DEVICE_ID, address);
 #else
             rs485_msg_nak(rs485, DEVICE_ID, address);
 #endif
