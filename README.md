@@ -3,11 +3,8 @@ This repository contains software for a RS-485 based network of Arduinos reporti
 values.  A BeagleBone Black is connected to the RS-485 network and collects the data to
 be presented was web pages.
 
-Right now, the repository only contains software.  It will be updated to also include
+Right now, the repository contains software and schematics/wiring diagrams.  It will be updated to also include
 OpenSCAD models of parts for 3D printing, parts lists, and wiring diagrams.
-
-While this project currently only monitors sensors, it could easily be updated to add some
-control elements to do various things.  Use this as a starting point for your own project.
 
 ## Contents
 The contents are divided up into several directories as described below.
@@ -42,6 +39,10 @@ by all of the other Arduino software and needs to be placed in your Arduino libr
 ### Web
 This is Ada code for the web server that runs on the BeagleBone Black.  It is uses my
 Ada-Web-Server repository on GitHub.
+
+### Schematics
+This is a collection of schematics created using KiCAD that are intended to provide assistance
+for wiring up various components.
 
 ## Dependancies
 Some of the items in this repository depend on other repositories.  In particular:

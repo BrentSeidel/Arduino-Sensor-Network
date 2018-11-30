@@ -61,7 +61,7 @@ The responder nodes are either Arduino Unos or Boarduinos (an Arduino clone from
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{ResponderUnit.pdf}
-  \caption{Basic Arduino Uno Responder Unit with BME280 Sensor}
+  \caption{Basic Arduino Uno Responder Unit with BME280, CCS811, and TSL2561 Sensors}
   \label{fig:basic}
 \end{figure}
 
@@ -78,13 +78,20 @@ The optional web gateway is a specialized form of listener.  It is based on the 
   \label{fig:gateway}
 \end{figure}
 
-\section{Sensors}
+\section{Sensors/Inputs}
 The responder nodes can use the discrete I/O pins and the analog input pins.  Custom code is needed to produce the data on the bus.  Software is written for three different I2C based sensors:
 
 \begin{itemize}
   \item BME280 (Adafruit p/n 2652) - This sensor provides calibrated temperature, barometric pressure, and humidity.
   \item TSL2651 (Adafruit p/n 439) - This is a digital light sensor that provides a reading of the light intensity.
   \item CCS811 (Adafruit p/n 3566) - This sensor provides uncalibrated CO$_2$ and Volatile Organic Compound readings.
+\end{itemize}
+
+\section{Outputs}
+The responder nodes can use the discrete I/O pins as outputs.  Custom code will be needed to set the value of these discretes.  Note that \texttt{LED\_PIN} is by default configured as an output and is controlled by the LSB of the discrete word from the controller.  Software is also provided for the following I2C output device:
+
+\begin{itemize}
+  \item PCA9685 (Adafruit p/n 815) - This device is a 6 channel, 12 bit PWM controller.
 \end{itemize}
 
 \section{3D Printed Parts}

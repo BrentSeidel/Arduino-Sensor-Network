@@ -94,7 +94,7 @@ To make the response messages easier to decode, each message has a message type 
 
 \begin{table}
   \centering
-  \begin{tabular}{c l l}
+  \begin{tabular}{r l l}
     \hline
     Value & Symbol & Meaning \\
     \hline
@@ -108,6 +108,7 @@ To make the response messages easier to decode, each message has a message type 
     7 & \texttt{MSG\_TYPE\_VERSION} & Version/Software ID (not yet implemented) \\
     8 & \texttt{MSG\_TYPE\_CCS811} & CCS811 sensor values \\
     9 & \texttt{MSG\_TYPE\_TSL2561} & TSL2651 sensor values \\
+    10 & \texttt{MSG\_TYPE\_PCA9685} & PCA9685 PWM Controller\\
   \end{tabular}
   \caption{Defined Message Types}
   \label{tab:messagetype}
@@ -181,35 +182,35 @@ Two of the URLs return an image in SVG format.  Typically, it is used for displa
 \subsubsection{Dial}
 The URL is \texttt{/Dial}.  The parameters are:
 \begin{itemize}
-  \item \texttt{min} - Specify the minimum value shown on the dial.
-  \item \texttt{max} - Specify the maximum value shown on the dial.
-  \item \texttt{value} - Specify the value indicated by the dial's pointer.
+  \item \texttt{min} - Specify the minimum value shown on the dial (required).
+  \item \texttt{max} - Specify the maximum value shown on the dial (required).
+  \item \texttt{value} - Specify the value indicated by the dial's pointer (required).
 \end{itemize}
 
 %---------------------------------------------------------------
 \subsubsection{Thermometer}
 The URL is \texttt{/Thermometer}.  The parameters are:
 \begin{itemize}
-  \item \texttt{min} - Specify the minimum value shown on the thermometer.
-  \item \texttt{max} - Specify the maximum value shown on the thermometer.
-  \item \texttt{value} - Specify the value indicated by the thermometer.
+  \item \texttt{min} - Specify the minimum value shown on the thermometer (required).
+  \item \texttt{max} - Specify the maximum value shown on the thermometer (required).
+  \item \texttt{value} - Specify the value indicated by the thermometer (required).
 \end{itemize}
 
 %---------------------------------------------------------------
 \subsection{Data and Control}
-The rest of the URLs either return data or are used to control the system.
+The rest of the URLs either return data or are used to control the system.  All of these return an XML message containing either requested data or an error message.
 
 %---------------------------------------------------------------
 \subsubsection{Send a Command to a Node}
 This function is used to send a command to the controller via the back channel.  The URL is \texttt{/xml/Command}.  There is one parameter:
 \begin{itemize}
-  \item \texttt{command} - The command to send as text.
+  \item \texttt{command} - The command to send as text (required).
 \end{itemize}
 
 The returned data is returned in a \texttt{<xml>} block with the following contents:
 \begin{itemize}
   \item \texttt{command} - Echoes the sent command, if the \texttt{command} parameter was present, or
-  \item \texttt{error} - Provides an error message if the \texttt{command|} parameter was not present.
+  \item \texttt{error} - Provides an error message if the \texttt{command} parameter was not present.
 \end{itemize}
 
 %---------------------------------------------------------------
@@ -232,7 +233,7 @@ The URL is \texttt{/xml/Devices}.  There are no parameters.  The returned data i
 \subsubsection{Get Data from a Device on the Network}
 While this call is simple, this returns the most complex set of data.  The URL is \texttt{/xml/DevData}.  There is one parameter:
 \begin{itemize}
-  \item \texttt{device} - Contains the node ID of the device to get data from.
+  \item \texttt{device} - Contains the node ID of the device to get data from (required).
 \end{itemize}
 
 The returned data is in an \texttt{<xml>} block.  The following components may, or may not be present depending on the configuration of the node:
@@ -306,11 +307,11 @@ The returned data is in an \texttt{<xml>} block.  The following components may, 
 \subsubsection{Control Debugging Messages}
 Various debugging messages can be displayed on the console.  This entry can be used to turn messages on or off and to report the status of debugging messages.  The URL is \texttt{/xml/Debug}.  There are several parameters:
 \begin{itemize}
-  \item \texttt{rs485.char} - Set to `T' to print characters that are read from the RS-485 bus.
-  \item \texttt{rs485.msg} - Set to `T' to print the type of message that is read from the RS-485 bus.
-  \item \texttt{http.head} - Set to `T' to print the headers from each HTTP request.
-  \item \texttt{http.msg} - Set to `T' to print the HTTP requests.
-  \item \texttt{web.dbg} - Set to `T' to print debugging messages from the web server.
+  \item \texttt{rs485.char} - Set to `T' to print characters that are read from the RS-485 bus (optional).
+  \item \texttt{rs485.msg} - Set to `T' to print the type of message that is read from the RS-485 bus (optional).
+  \item \texttt{http.head} - Set to `T' to print the headers from each HTTP request (optional).
+  \item \texttt{http.msg} - Set to `T' to print the HTTP requests (optional).
+  \item \texttt{web.dbg} - Set to `T' to print debugging messages from the web server (optional).
 \end{itemize}
 
 The returned data is in a \texttt{<xml>} block with the following contents:
@@ -326,11 +327,11 @@ The returned data is in a \texttt{<xml>} block with the following contents:
 \subsubsection{Control Data Logging}
 Starting logging is a two step process.  First the specific messages to log need to be enabled.  Then logging needs to be turned on.  The URL is \texttt{/xml/Log}.  There are several parameters:
 \begin{itemize}
-  \item \texttt{log.info} - Set to `T' to enable logging of info messages.
-  \item \texttt{log.BME280} - Set to `T' to enable logging of BME280 messages.
-  \item \texttt{log.CCS811} - Set to `T' to enable logging of CCS811 messages.
-  \item \texttt{log.TSL2561} - Set to `T' to enable logging of TSL2561 messages.
-  \item \texttt{logging} - Set to `T' to turn logging on.
+  \item \texttt{log.info} - Set to `T' to enable logging of info messages (optional).
+  \item \texttt{log.BME280} - Set to `T' to enable logging of BME280 messages (optional).
+  \item \texttt{log.CCS811} - Set to `T' to enable logging of CCS811 messages (optional).
+  \item \texttt{log.TSL2561} - Set to `T' to enable logging of TSL2561 messages (optional).
+  \item \texttt{logging} - Set to `T' to turn logging on (optional).
 \end{itemize}
 
 The returned data is in a \texttt{<xml>} block with the following contents:
@@ -339,14 +340,14 @@ The returned data is in a \texttt{<xml>} block with the following contents:
   \item \texttt{<log.BME280>} - \texttt{TRUE} if BME280 message logging is enabled.
   \item \texttt{<log.CCS811>} - \texttt{TRUE} if CCS811 message logging is enabled.
   \item \texttt{<log.TSL2561>} - \texttt{TRUE} if TSL2561 message logging is enabled.
+  \item \texttt{<log.type>} - Set to the type of log files.  Currently either \texttt{NONE} or \texttt{CSV}.
 \end{itemize}
-Note that there is currently no item that gives the overall state of logging.  This will need to be added at some point.
 
 %---------------------------------------------------------------
 \subsubsection{Get Device Name}
 The URL is \texttt{/xml/Name} name internal.  There is one parameter:
 \begin{itemize}
-  \item \texttt{device} - Specify the device number to get information from.
+  \item \texttt{device} - Specify the device number to get information from (required).
 \end{itemize}
 
 The returned data is in a \texttt{<xml>} block with the following contents:
