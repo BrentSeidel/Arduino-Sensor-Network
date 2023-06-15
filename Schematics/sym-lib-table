@@ -1,0 +1,5 @@
+(sym_lib_table
+  (version 0)
+  (lib (name "Arduino-Sensors-rescue")(type "Legacy")(uri "${KIPRJMOD}/Arduino-Sensors-rescue.lib")(options "")(descr ""))
+  (lib (name "PartsLibrary")(type "Legacy")(uri "${KIPRJMOD}/PartsLibrary.lib")(options "")(descr ""))
+)

@@ -1,0 +1,79 @@
+(kicad_sch (version 20230121) (generator eeschema)
+
+  (uuid a3083090-c5d0-4776-9bdb-c969e0834a79)
+
+  (paper "A4")
+
+  (title_block
+    (company "Modest Consulting")
+    (comment 1 "by Brent Seidel")
+  )
+
+  (lib_symbols
+  )
+
+
+  (text "USB and power connections not show." (at 179.07 170.18 0)
+    (effects (font (size 1.524 1.524)) (justify left bottom))
+    (uuid a4bd800f-cef3-47a6-8343-2d25d3a06d06)
+  )
+  (text "RS-485 Network Components" (at 187.96 190.5 0)
+    (effects (font (size 1.524 1.524)) (justify left bottom))
+    (uuid ac5cef89-281f-4647-aa26-57af453090e1)
+  )
+
+  (sheet (at 311.15 20.32) (size 12.7 6.35) (fields_autoplaced)
+    (stroke (width 0) (type solid))
+    (fill (color 0 0 0 0.0000))
+    (uuid 00000000-0000-0000-0000-00005bb76d33)
+    (property "Sheetname" "Controller" (at 311.15 19.4814 0)
+      (effects (font (size 1.524 1.524)) (justify left bottom))
+    )
+    (property "Sheetfile" "Controller.kicad_sch" (at 311.15 27.3562 0)
+      (effects (font (size 1.524 1.524)) (justify left top))
+    )
+    (instances
+      (project "Arduino-Sensors"
+        (path "/a3083090-c5d0-4776-9bdb-c969e0834a79" (page "2"))
+      )
+    )
+  )
+
+  (sheet (at 311.15 31.75) (size 12.7 3.81) (fields_autoplaced)
+    (stroke (width 0) (type solid))
+    (fill (color 0 0 0 0.0000))
+    (uuid 00000000-0000-0000-0000-00005bb78af3)
+    (property "Sheetname" "BasicResponder" (at 311.15 30.9114 0)
+      (effects (font (size 1.524 1.524)) (justify left bottom))
+    )
+    (property "Sheetfile" "Basic Responder.kicad_sch" (at 311.15 36.2462 0)
+      (effects (font (size 1.524 1.524)) (justify left top))
+    )
+    (instances
+      (project "Arduino-Sensors"
+        (path "/a3083090-c5d0-4776-9bdb-c969e0834a79" (page "3"))
+      )
+    )
+  )
+
+  (sheet (at 311.15 43.18) (size 12.7 3.81) (fields_autoplaced)
+    (stroke (width 0) (type solid))
+    (fill (color 0 0 0 0.0000))
+    (uuid 00000000-0000-0000-0000-00005bb7a4f7)
+    (property "Sheetname" "Web Gateway" (at 311.15 42.3414 0)
+      (effects (font (size 1.524 1.524)) (justify left bottom))
+    )
+    (property "Sheetfile" "Web Gateway.kicad_sch" (at 311.15 47.6762 0)
+      (effects (font (size 1.524 1.524)) (justify left top))
+    )
+    (instances
+      (project "Arduino-Sensors"
+        (path "/a3083090-c5d0-4776-9bdb-c969e0834a79" (page "4"))
+      )
+    )
+  )
+
+  (sheet_instances
+    (path "/" (page "1"))
+  )
+)
